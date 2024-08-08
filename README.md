@@ -22,7 +22,7 @@ Para instalar e rodar o AutoDoc localmente, siga os passos abaixo:
 1. Clone o repositório:
 
 ```sh
-git clone https://github.com/seu-usuario/AutoDoc.git
+git clone https://github.com/LawrenceTeixeira/PBIAutoDoc.git
 ```
 
 2. Navegue até o diretório do projeto:
