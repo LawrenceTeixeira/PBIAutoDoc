@@ -1,5 +1,5 @@
 #file to be ignored
-#.env
+.env
 .pyc
 .cpython-36.pyc
 *.pyc
@@ -9,3 +9,14 @@
 Report/
 DAXQueries/
 Temp/
+
+# Ignore the environment folder
+.venv/
+
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+
+# Ignore other files or directories
+.DS_Store
+*.log
