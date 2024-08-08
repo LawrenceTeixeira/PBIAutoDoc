@@ -1,0 +1,13 @@
+# flyctl launch added from .gitignore
+#file to be ignored
+#.env
+**\.pyc
+**\.cpython-36.pyc
+**\*.pyc
+**\*~
+**\*.swp
+**\.idea
+
+# flyctl launch added from .venv\.gitignore
+.venv\**\*
+fly.toml
