@@ -1,17 +1,13 @@
 import json
 from litellm import completion
-from io import BytesIO
 import pandas as pd
 import io
-import base64
-from streamlit_javascript import st_javascript
 from docx import Document
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt, Inches, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from datetime import date
-import re
         
 def defined_prompt():
     """Retorna o prompt para a documentação do relatório do Power BI."""
@@ -120,7 +116,7 @@ def client_chat_LiteLLM(modelo, messages):
             
     return response_content
 
-def Documenta(prompt, text, api_key, modelo):
+def Documenta(prompt, text, modelo):
     """Gera a documentação do relatório em formato JSON."""
     
     messages = [

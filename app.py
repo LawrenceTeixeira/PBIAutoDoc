@@ -1,6 +1,4 @@
 import streamlit as st
-from streamlit_javascript import st_javascript
-import base64
 import os
 from dotenv import load_dotenv
 from io import BytesIO
@@ -185,7 +183,7 @@ def buttons_download(df):
             text, measures_df, tables_df = text_to_document(df)
             prompts = defined_prompt()
 
-            response_info, response_tables, response_measures, response_source = Documenta(prompts, text, API_KEY, MODELO)
+            response_info, response_tables, response_measures, response_source = Documenta(prompts, text, MODELO)
             
             # Update the 'FonteDados' field in the response data
             update_fonte_dados(response_source, tables_df)
