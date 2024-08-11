@@ -194,7 +194,7 @@ def buttons_download(df):
             
             st.session_state.button = False
     
-    verprompt = st.checkbox("Mostrar JSON", key='mostrar_json', disabled=st.session_state.button )
+    verprompt = st.checkbox("Mostrar JSONs", key='mostrar_json', disabled=st.session_state.button )
 
     if verprompt:
         # Convert dictionaries to JSON strings
@@ -204,7 +204,7 @@ def buttons_download(df):
         response_source_str = json.dumps(st.session_state['response_source'], indent=2)
 
         # Concatenate the JSON strings
-        text = response_info_str + '\n' + response_tables_str + '\n' + response_measures_str + '\n' + response_source_str 
+        text = 'JSON com as informações do relatório' + '\n' + response_info_str + '\n\n' + 'JSON com as tabelas do relatório' + '\n' + response_tables_str + '\n\n' + 'JSON com as medidas do relatório' + '\n' + response_measures_str + '\n\n' + 'JSON com as fontes de dados do relatório' + '\n' + response_source_str 
         
         st.text_area("JSON", value=text, height=300)
     

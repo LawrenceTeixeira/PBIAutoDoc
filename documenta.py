@@ -382,6 +382,9 @@ def generate_excel(response_info, response_tables, response_measures, response_s
             tables = pd.DataFrame(response_tables)
         elif 'Tabelas_do_Relatorio' in response_tables:
             tables = pd.DataFrame(response_tables['Tabelas_do_Relatorio'])
+        else:
+            tables = pd.DataFrame()
+            
         all_tables.append(tables)
         
         if isinstance(response_measures, list):
@@ -397,6 +400,9 @@ def generate_excel(response_info, response_tables, response_measures, response_s
             sources = pd.DataFrame(response_source)
         elif 'Fontes_de_Dados' in response_source:
             sources = pd.DataFrame(response_source['Fontes_de_Dados'])
+        else:
+            sources = pd.DataFrame()
+            
         all_sources.append(sources)
     
         df_info = pd.concat(all_info, ignore_index=True)
@@ -404,7 +410,7 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         df_medidas = pd.concat(all_measures, ignore_index=True)
         df_fontes = pd.concat(all_sources, ignore_index=True)
         
-        if 'Nome' in response_measures['Medidas_do_Relatorio']:
+        if 'Medidas_do_Relatorio' in response_measures and 'Nome' in response_measures['Medidas_do_Relatorio']:
             df_medidas = pd.merge(df_medidas, measures_df,  left_on='Nome', right_on='Medida', how='left')
             df_medidas = df_medidas[['Medida', 'Descricao', 'expression']]
     
