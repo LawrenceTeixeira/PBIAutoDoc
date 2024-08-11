@@ -40,10 +40,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        #mudar para combo ao inves de radio
-        modelo = 'Open AI'
-        #modelo = 'Groq'
-        #modelo = st.selectbox("Selecione o modelo:", ('Open AI', 'Groq'))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o', 'azure/gpt-4o','claude-3-5-sonnet-20240620', 'gemini/gemini-1.5-pro'))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
@@ -180,7 +177,11 @@ def buttons_download(df):
         st.text_area("Prompt", value=prompt, height=300)    
         
     if st.button("Gerar documentação"):
-        with st.spinner("Gerando documentação, por favor aguarde..."):
+        
+        # Mostrando uma mensgem de carregamento
+        gerando = f"Gerando documentação usando o modelo {MODELO}, por favor aguarde..."
+        
+        with st.spinner(gerando):
             text, measures_df, tables_df = text_to_document(df)
             prompts = defined_prompt()
 
@@ -253,12 +254,7 @@ def main():
     app_id, tenant_id, secret_value, uploaded_files, modelo = sidebar_inputs()
     
     MODELO = modelo
-    
-    if modelo == 'Open AI': 
-        API_KEY = OPENAI_API_KEY    
-    else:       
-        API_KEY = GROQ_API_KEY
-        
+            
     if app_id and tenant_id and secret_value:
         headers = get_token(app_id, tenant_id, secret_value)
         if headers:

@@ -1,6 +1,7 @@
 import json
 from openai import OpenAI
 from groq import Groq
+from litellm import completion
 from io import BytesIO
 import pandas as pd
 import io
@@ -103,22 +104,13 @@ Exemplo do JSON:
 Abaixo estão dados do relatório do Power BI a ser documentado:"""
     return prompt_relatorio
 
-def client_chat(modelo, messages, api_key):
-    
-    if modelo == 'Open AI':
-        response = client_chat_openai(messages, api_key)
-    elif modelo == 'Groq':
-        response = client_chat_groq(messages, api_key)
-    
-    return response
-
-def client_chat_openai(messages, api_key):
-    """Interage com o modelo GPT da OpenAI para obter respostas."""
-    
+def client_chat_LiteLLM(modelo, messages):    
+    """Interage com qualquer modelo unsando LiteLLM para obter respostas.
+       Mais informações em: https://docs.litellm.ai/docs/providers
+    """
     try:
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o",
+        response = completion(
+            model=modelo,
             temperature=0,
             max_tokens=4096,
             messages=messages
@@ -130,38 +122,27 @@ def client_chat_openai(messages, api_key):
             
     return response_content
 
-def client_chat_groq(messages, api_key):
-    """Interage com o modelo GPT da OpenAI para obter respostas."""
-    
-    client = Groq(api_key=api_key)
-    response = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
-        temperature=0,
-        max_tokens=8000,
-        top_p=1,
-        messages=messages
-    )
-    response_content = json.loads(response.choices[0].message.content)
-    return response_content
-
 def Documenta(prompt, text, api_key, modelo):
     """Gera a documentação do relatório em formato JSON."""
+    
     messages = [
         {"role": "system", "content": "Você é um documentador especializado em relatórios do Power BI."},
         {"role": "user", "content": f"{prompt}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"}
     ]
-
+    
+    print('Usando o modelo:', modelo)
+    
     messages.append({"role": "user", "content": "Você deve retornar somente a parte do JSON: 'Relatorio'"})
-    response_info = client_chat(modelo, messages, api_key)
+    response_info = client_chat_LiteLLM(modelo, messages)
     
     messages.append({"role": "user", "content": "Você deve retornar somente a parte do JSON: 'Tabelas_do_Relatorio'"})
-    response_tables = client_chat(modelo, messages, api_key)
+    response_tables = client_chat_LiteLLM(modelo, messages)
     
     messages.append({"role": "user", "content": "Você deve retornar somente a parte do JSON: 'Medidas_do_Relatorio'. Se a medida for NaN, não retorne ela."})
-    response_measures = client_chat(modelo, messages, api_key)
+    response_measures = client_chat_LiteLLM(modelo, messages)
     
     messages.append({"role": "user", "content": "Você deve retornar somente a parte do JSON: 'Fontes_de_Dados.'"})
-    response_source = client_chat(modelo, messages, api_key)
+    response_source = client_chat_LiteLLM(modelo, messages)
     
     return response_info, response_tables, response_measures, response_source
 
@@ -311,9 +292,9 @@ def add_data_sources_table(doc, response_source):
         row_cells = table.add_row().cells
         row_cells[0].text = source_info["Nome"]
         row_cells[1].text = source_info["Descricao"]
-        row_cells[2].text = ", ".join(source_info["Tabelas_Contidas_no_M"])
-        row_cells[3].text = source_info["FonteDados"]
-
+        row_cells[2].text = ", ".join(source_info["Tabelas_Contidas_no_M"])         
+        row_cells[3].text = source_info.get("FonteDados", "N/A")
+    
     if isinstance(response_source, list):
         for source_info in response_source:
             add_source_row(source_info)
