@@ -1,6 +1,4 @@
 import json
-from openai import OpenAI
-from groq import Groq
 from litellm import completion
 from io import BytesIO
 import pandas as pd

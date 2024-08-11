@@ -1,10 +1,9 @@
 streamlit
+litellm
 msal
 requests
 pandas
-openai
 python-dotenv
 python-docx
 xlsxwriter
-groq
 streamlit-javascript
