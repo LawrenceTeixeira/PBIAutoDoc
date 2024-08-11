@@ -52,9 +52,15 @@ pip install -r requirements.txt
 5. Crie um arquivo `.env` com as variáveis de ambiente necessárias:
 
 ```env
-API_KEY=sua_openai_api_key
-GROQ_API_KEY=sua_groq_api_key
+OPENAI_API_KEY=your_openai_api_key
+GROQ_API_KEY=your_groq_api_key
+AZURE_API_KEY=your_azure_api_key
+AZURE_API_BASE=your_endpoint #Example: "https://<your alias>.openai.azure.com"
+AZURE_API_VERSION=your_version #Example: 2024-02-15-preview
+GEMINI_API_KEY=your_gemini_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
+Pata utilização de  outros modelos vá para este link: [LiteLLM Providers](https://docs.litellm.ai/docs/providers)
 
 6. Execute o aplicativo:
 
