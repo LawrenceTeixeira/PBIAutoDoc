@@ -11,6 +11,9 @@ AutoDoc é uma ferramenta desenvolvida para simplificar e automatizar o processo
 - **Visualização Interativa**: Veja as tabelas e dados detalhados diretamente na interface do aplicativo antes de fazer o download.
 - **Eficiência e Precisão**: Automatize o processo de documentação, economizando tempo e garantindo a precisão das informações.
 
+## Execute o AutoDoc
+Para executar o Autodoc click neste link: [AutoDoc - Documentador de Power BI](https://autodocpbi.fly.dev/)
+
 ## Como Usar o AutoDoc
 
 1. Preencha as informações do App ID, Tenant ID e Secret Value na barra lateral.
