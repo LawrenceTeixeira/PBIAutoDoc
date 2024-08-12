@@ -14,6 +14,54 @@ AutoDoc é uma ferramenta desenvolvida para simplificar e automatizar o processo
 ## Execute o AutoDoc
 Para executar o Autodoc click neste link: [AutoDoc - Documentador de Power BI](https://autodocpbi.fly.dev/)
 
+## Workflow
+```mermaid
+graph TD
+    A[Início] --> B{Escolha o modelo LLM}
+    B -->|OpenAI GPT-4| C[OpenAI GPT-4 selecionado]
+    B -->|Azure OpenAI GPT-4| D[Azure OpenAI GPT-4 selecionado]
+    B -->|Anthropic Claude 3.5 Sonnet| E[Anthropic Claude 3.5 Sonnet selecionado]
+    B -->|Google Gemini 1.5 Pro| F[Google Gemini 1.5 Pro selecionado]
+    B -->|Llama 3.1 70B| G[Llama 3.1 70B selecionado]
+    
+    C --> H{Escolha a ação inicial}
+    D --> H
+    E --> H
+    F --> H
+    G --> H
+    
+    H -->|Opção 1| I[Fazer upload do arquivo de modelo Power BI]
+    H -->|Opção 2| J[Preencher informações na barra lateral]
+    
+    I --> K{Tipo de arquivo}
+    K -->|.pbit| L[Processar arquivo .pbit]
+    K -->|.zip| M[Processar arquivo .zip]
+    
+    J --> N[App ID]
+    J --> O[Tenant ID]
+    J --> P[Secret Value]
+    
+    L --> Q[Preencher informações na barra lateral]
+    M --> Q
+    
+    N --> R[Fazer upload do arquivo de modelo Power BI]
+    O --> R
+    P --> R
+    
+    Q --> S[Gerar documentação detalhada]
+    R --> S
+    
+    S --> T[Visualização interativa dos dados]
+    T --> U{Escolher formato de saída}
+    U -->|Excel| V[Gerar documento Excel]
+    U -->|Word| W[Gerar documento Word]
+    V --> X[Download da documentação]
+    W --> X
+    X --> Y[Fim]
+```
+
+
+
 ## Como Usar o AutoDoc
 
 1. Preencha as informações do App ID, Tenant ID e Secret Value na barra lateral.
