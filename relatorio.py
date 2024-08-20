@@ -131,7 +131,9 @@ def upload_file(uploaded_files):
                         for measures in rows['measures']:
                             tables_names.append(rows['name'])
                             measure_names.append(measures['name'])
-                            measure_expression.append("".join(measures['expression']))
+                            expression = measures.get('expression', 'N/A')
+                            measure_expression.append("".join(expression) if isinstance(expression, list) else expression)
+
                     
                     if 'columns' in rows:
                         for cols in rows['columns']:
