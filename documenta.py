@@ -430,8 +430,14 @@ def text_to_document(df):
     measures_df = df[df['NomeMedida'].notnull() & df['ExpressaoMedida'].notnull()]
     measures_df = measures_df[['NomeMedida', 'ExpressaoMedida']].drop_duplicates().reset_index(drop=True)
         
+    if not df.empty and 'ReportName' in df.columns:
+        report_name = df['ReportName'].iloc[0]
+    else:
+        report_name = "PBIReport"
+    
     document_text = f"""
-    Relatório: {df['ReportName'].iloc[0]}
+        
+    Relatório: {report_name}
     
     Tabelas:
     {tables_df['NomeTabela'].to_string(index=False)}

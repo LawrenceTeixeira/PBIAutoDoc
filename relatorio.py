@@ -105,10 +105,14 @@ def clean_reports(reports, option):
     else:
         columns_normalized = pd.DataFrame(columns=['NomeTabela', 'NomeColuna', 'TipoDadoColuna', 'TipoColuna', 'ExpressaoColuna'])
 
-    tables_normalized = tables_normalized[['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'source', 'configuredBy']]
-    tables_normalized.rename(columns={'source': 'FonteDados'}, inplace=True)
-    dataset_desnormalized = tables_normalized.merge(measures_normalized, on='NomeTabela', how='left')
-    dataset_desnormalized = dataset_desnormalized.merge(columns_normalized, on='NomeTabela', how='left')
+    # Verificando se a coluna 'NomeTabela' existe antes de continuar
+    if 'NomeTabela' in tables_normalized.columns:
+        tables_normalized = tables_normalized[['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'source', 'configuredBy']]
+        tables_normalized.rename(columns={'source': 'FonteDados'}, inplace=True)
+        dataset_desnormalized = tables_normalized.merge(measures_normalized, on='NomeTabela', how='left')
+        dataset_desnormalized = dataset_desnormalized.merge(columns_normalized, on='NomeTabela', how='left')
+    else:
+        dataset_desnormalized = pd.DataFrame(columns=['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'FonteDados', 'configuredBy', 'NomeMedida', 'ExpressaoMedida', 'NomeColuna', 'TipoDadoColuna', 'TipoColuna', 'ExpressaoColuna'])
 
     return dataset_desnormalized
 

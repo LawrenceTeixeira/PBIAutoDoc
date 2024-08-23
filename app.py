@@ -152,7 +152,11 @@ def update_fonte_dados(data, tables_df):
 def buttons_download(df):
     """Exibe botões para download e visualização dos dados processados."""
     
-    report_name = df['ReportName'].iloc[0].replace(' ', '_')
+    if not df.empty and 'ReportName' in df.columns:
+        report_name = df['ReportName'].iloc[0].replace(' ', '_')
+    else:
+        # Handle the case where the DataFrame is empty or the column doesn't exist
+        report_name = "PBIReport"
     
     if 'button' not in st.session_state:
         st.session_state.button = True
