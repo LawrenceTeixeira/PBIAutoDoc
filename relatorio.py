@@ -69,7 +69,12 @@ def clean_reports(reports, option):
     # Normalizando e tratando a tabela de 'tables'
     tables_normalized = pd.concat([datasets_exploded[['DatasetId', 'ReportName', 'configuredBy']], pd.json_normalize(datasets_exploded['tables'])], axis=1)
     tables_normalized.rename(columns={'name': 'NomeTabela'}, inplace=True)
-    tables_normalized['source'] = tables_normalized['source'].apply(lambda x: x[0]['expression'] if isinstance(x, list) and len(x) > 0 else None)
+    
+    if 'source' in tables_normalized.columns:
+        tables_normalized['source'] = tables_normalized['source'].apply(lambda x: x[0]['expression'] if isinstance(x, list) and len(x) > 0 else None)
+    else:
+        tables_normalized['source'] = None
+    
     if 'storageMode' not in tables_normalized.columns:
         tables_normalized['storageMode'] = None
 
@@ -84,8 +89,14 @@ def clean_reports(reports, option):
     # Criando e tratando a tabela de colunas
     columns_normalized = tables_normalized.explode('columns', ignore_index=True)
     columns_normalized = pd.concat([columns_normalized[['NomeTabela']], pd.json_normalize(columns_normalized['columns'])], axis=1)
-    columns_normalized = columns_normalized[['NomeTabela', 'name', 'dataType', 'columnType', 'expression']]
-    columns_normalized['expression'] = columns_normalized.get('expression', 'N/A')
+    
+    # Verificando se as colunas existem antes de acessá-las
+    if 'expression' in columns_normalized.columns:
+        columns_normalized['expression'] = columns_normalized.get('expression', 'N/A')
+    else:
+        columns_normalized['expression'] = 'N/A'
+    
+    columns_normalized = columns_normalized[['NomeTabela', 'name', 'dataType', 'columnType', 'expression']]    
     columns_normalized.rename(columns={'name': 'NomeColuna', 'dataType': 'TipoDadoColuna', 'columnType': 'TipoColuna', 'expression': 'ExpressaoColuna'}, inplace=True)
 
     tables_normalized = tables_normalized[['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'source', 'configuredBy']]
