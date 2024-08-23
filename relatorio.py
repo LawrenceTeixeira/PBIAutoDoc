@@ -78,26 +78,32 @@ def clean_reports(reports, option):
     if 'storageMode' not in tables_normalized.columns:
         tables_normalized['storageMode'] = None
 
-    # Criando e tratando a tabela de medidas
-    measures_normalized = tables_normalized.explode('measures', ignore_index=True)
-    measures_normalized = pd.concat([measures_normalized[['NomeTabela']], pd.json_normalize(measures_normalized['measures'])], axis=1)
-    measures_normalized['name'] = measures_normalized.get('name', 'N/A')
-    measures_normalized['expression'] = measures_normalized.get('expression', 'N/A')
-    measures_normalized = measures_normalized[['NomeTabela', 'name', 'expression']]
-    measures_normalized.rename(columns={'name': 'NomeMedida', 'expression': 'ExpressaoMedida'}, inplace=True)
-
-    # Criando e tratando a tabela de colunas
-    columns_normalized = tables_normalized.explode('columns', ignore_index=True)
-    columns_normalized = pd.concat([columns_normalized[['NomeTabela']], pd.json_normalize(columns_normalized['columns'])], axis=1)
-    
-    # Verificando se as colunas existem antes de acessá-las
-    if 'expression' in columns_normalized.columns:
-        columns_normalized['expression'] = columns_normalized.get('expression', 'N/A')
+    # Criando e tratando a tabela de medidas, verificando se a coluna 'measures' existe
+    if 'measures' in tables_normalized.columns:
+        measures_normalized = tables_normalized.explode('measures', ignore_index=True)
+        measures_normalized = pd.concat([measures_normalized[['NomeTabela']], pd.json_normalize(measures_normalized['measures'])], axis=1)
+        measures_normalized['name'] = measures_normalized.get('name', 'N/A')
+        measures_normalized['expression'] = measures_normalized.get('expression', 'N/A')
+        measures_normalized = measures_normalized[['NomeTabela', 'name', 'expression']]
+        measures_normalized.rename(columns={'name': 'NomeMedida', 'expression': 'ExpressaoMedida'}, inplace=True)
     else:
-        columns_normalized['expression'] = 'N/A'
-    
-    columns_normalized = columns_normalized[['NomeTabela', 'name', 'dataType', 'columnType', 'expression']]    
-    columns_normalized.rename(columns={'name': 'NomeColuna', 'dataType': 'TipoDadoColuna', 'columnType': 'TipoColuna', 'expression': 'ExpressaoColuna'}, inplace=True)
+        measures_normalized = pd.DataFrame(columns=['NomeTabela', 'NomeMedida', 'ExpressaoMedida'])
+
+    # Criando e tratando a tabela de colunas, verificando se a coluna 'columns' existe
+    if 'columns' in tables_normalized.columns:
+        columns_normalized = tables_normalized.explode('columns', ignore_index=True)
+        columns_normalized = pd.concat([columns_normalized[['NomeTabela']], pd.json_normalize(columns_normalized['columns'])], axis=1)
+        
+        # Verificando se as colunas existem antes de acessá-las
+        if 'expression' in columns_normalized.columns:
+            columns_normalized['expression'] = columns_normalized['expression'].fillna('N/A')
+        else:
+            columns_normalized['expression'] = 'N/A'
+        
+        columns_normalized = columns_normalized[['NomeTabela', 'name', 'dataType', 'columnType', 'expression']]
+        columns_normalized.rename(columns={'name': 'NomeColuna', 'dataType': 'TipoDadoColuna', 'columnType': 'TipoColuna', 'expression': 'ExpressaoColuna'}, inplace=True)
+    else:
+        columns_normalized = pd.DataFrame(columns=['NomeTabela', 'NomeColuna', 'TipoDadoColuna', 'TipoColuna', 'ExpressaoColuna'])
 
     tables_normalized = tables_normalized[['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'source', 'configuredBy']]
     tables_normalized.rename(columns={'source': 'FonteDados'}, inplace=True)
