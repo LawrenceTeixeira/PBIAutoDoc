@@ -62,7 +62,13 @@ def clean_reports(reports, option):
     # Filtrando e tratando o dataset principal
     df_normalized = pd.json_normalize(df_workspaces['datasets'])
     df_normalized = df_normalized.query(f"name == '{option}'")
-    df_normalized = df_normalized[['id', 'name', 'configuredBy', 'createdDate', 'tables', 'expressions']].copy()
+
+    # Verificando se a coluna 'expressions' existe antes de tentar acessá-la
+    expected_columns = ['id', 'name', 'configuredBy', 'createdDate', 'tables']
+    if 'expressions' in df_normalized.columns:
+        expected_columns.append('expressions')
+
+    df_normalized = df_normalized[expected_columns].copy()
     df_normalized.rename(columns={'id': 'DatasetId', 'name': 'ReportName'}, inplace=True)
     datasets_exploded = df_normalized.explode('tables', ignore_index=True)
 
@@ -115,6 +121,7 @@ def clean_reports(reports, option):
         dataset_desnormalized = pd.DataFrame(columns=['DatasetId', 'ReportName', 'NomeTabela', 'storageMode', 'FonteDados', 'configuredBy', 'NomeMedida', 'ExpressaoMedida', 'NomeColuna', 'TipoDadoColuna', 'TipoColuna', 'ExpressaoColuna'])
 
     return dataset_desnormalized
+
 
 def upload_file(uploaded_files):
     """Processa o upload do arquivo .pbit ou .zip e extrai os dados relevantes."""
