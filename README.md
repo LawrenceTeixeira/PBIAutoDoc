@@ -136,6 +136,13 @@ curl -L https://fly.io/install.sh | sh
 export PATH=/home/codespace/.fly/bin
 ```
 
+## Pré Requisitos
+
+- Computador com Windows e acesso a internet
+- Python 3.9 ou superior
+- Acesso à internet
+- API com créditos na conta
+
 ## Sobre o Aplicativo
 
 AutoDoc é projetado para administradores e analistas de dados que precisam de uma forma eficiente e precisa de gerar documentações de alta qualidade para seus relatórios do Power BI. A ferramenta utiliza tecnologias avançadas de processamento de dados e inteligência artificial para fornecer documentações claras, detalhadas e formatadas de acordo com suas necessidades.
