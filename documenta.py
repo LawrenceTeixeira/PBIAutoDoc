@@ -323,7 +323,7 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     doc = Document()
 
     # Add Logo
-    doc.add_picture('images\Logo.png', width=Inches(1.0))
+    doc.add_picture(r'images\Logo.png', width=Inches(1.0))
     
     # Add centered title
     add_centered_title(doc, "AutoDoc - Documentador de Power BI")
