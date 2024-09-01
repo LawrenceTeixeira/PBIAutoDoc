@@ -321,9 +321,12 @@ def generate_promt(text):
 def generate_docx(response_info, response_tables, response_measures, response_source, measures_df):
     """Gera um documento Word com a documentação do relatório."""
     doc = Document()
-
+    
     # Add Logo
-    doc.add_picture(r'images/Logo.png', width=Inches(1.0))
+    paragraph = doc.add_paragraph()
+    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    run = paragraph.add_run()
+    run.add_picture(r'images/Logo.png', width=Inches(1.0))
     
     # Add centered title
     add_centered_title(doc, "AutoDoc - Documentador de Power BI")
