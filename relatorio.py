@@ -157,18 +157,24 @@ def upload_file(uploaded_files):
                 if 'DateTable' not in rows['name']:
                     if 'measures' in rows:
                         for measures in rows['measures']:
+                            # Verificando se a medida está dentro de uma pasta
+                            folder_name = measures.get('displayFolder', None)
+                            if folder_name:
+                                full_measure_name = f"{folder_name} / {measures['name']}"
+                            else:
+                                full_measure_name = measures['name']
+                            
                             tables_names.append(rows['name'])
-                            measure_names.append(measures['name'])
+                            measure_names.append(full_measure_name)
                             expression = measures.get('expression', 'N/A')
                             measure_expression.append("".join(expression) if isinstance(expression, list) else expression)
 
-                    
                     if 'columns' in rows:
                         for cols in rows['columns']:
                             col_data = pd.DataFrame([{
                                 'NomeTabela': rows['name'],
                                 'NomeColuna': cols['name'],
-                                'TipoDadoColuna': cols['dataType'],
+                                'TipoDadoColuna': cols.get('dataType', 'N/A'),
                                 'TipoColuna': cols.get('type', 'N/A'),
                                 'ExpressaoColuna': cols.get('expression', 'N/A')
                             }])
@@ -187,13 +193,16 @@ def upload_file(uploaded_files):
 
                     df_tables = pd.concat([df_tables, df_tables_rows], ignore_index=True)
 
-        df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(lambda l: "".join(l))
+        df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(lambda l: "".join(l) if isinstance(l, list) else l)
         
         df_measures = pd.DataFrame({
             'NomeTabela': tables_names,
             'NomeMedida': measure_names,
             'ExpressaoMedida': measure_expression
         })
+
+        # Debugging output to inspect data
+        print("Measures DataFrame:", df_measures)
 
         df_normalized = pd.merge(pd.merge(df_tables, df_measures, left_on='NomeTabela', right_on='NomeTabela', how='left'), df_columns, right_on='NomeTabela', left_on='NomeTabela', how='left')
         
