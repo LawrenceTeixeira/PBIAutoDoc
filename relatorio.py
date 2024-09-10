@@ -125,6 +125,11 @@ def clean_reports(reports, option):
 
 def upload_file(uploaded_files):
     """Processa o upload do arquivo .pbit ou .zip e extrai os dados relevantes."""
+
+    datasetid_content = None  # Initialize with a default value
+    reportid_content = None
+    reportname_content = None
+
     if uploaded_files.name.endswith('.pbit') or uploaded_files.name.endswith('.zip'):
         if uploaded_files.name.endswith('.pbit'):
             uploaded_files.name = uploaded_files.name[:-5] + '.zip'
@@ -183,13 +188,23 @@ def upload_file(uploaded_files):
 
                     mcode = [''.join(rows['partitions'][0]['source']['expression'])]
                     
-                    df_tables_rows = pd.DataFrame([{
-                        'DatasetId': datasetid_content,
-                        'ReportId': reportid_content,
-                        'ReportName': reportname_content,
-                        'NomeTabela': rows['name'], 
-                        'FonteDados': mcode[0]
-                    }])
+                    if datasetid_content is not None:
+                        df_tables_rows = pd.DataFrame([{
+                            'DatasetId': datasetid_content,
+                            'ReportId': reportid_content,
+                            'ReportName': reportname_content,
+                            'NomeTabela': rows['name'], 
+                            'FonteDados': mcode[0]
+                        }])
+                        print(df_tables_rows)
+                    else:
+                        df_tables_rows = pd.DataFrame([{
+                            'DatasetId': '0',
+                            'ReportId': reportid_content,
+                            'ReportName': 'PBIReport',
+                            'NomeTabela': rows['name'], 
+                            'FonteDados': mcode[0]
+                        }])
 
                     df_tables = pd.concat([df_tables, df_tables_rows], ignore_index=True)
 
