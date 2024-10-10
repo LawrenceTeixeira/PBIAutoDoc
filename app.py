@@ -57,7 +57,8 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             tenant_id = st.text_input(label='Tenant ID')
             secret_value = st.text_input(label='Secret value')
             uploaded_files = None  # Nenhum arquivo será necessário            
-        
+        ""
+        "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
 
