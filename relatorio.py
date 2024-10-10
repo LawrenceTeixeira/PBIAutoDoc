@@ -196,7 +196,7 @@ def upload_file(uploaded_files):
                             'NomeTabela': rows['name'], 
                             'FonteDados': mcode[0]
                         }])
-                        print(df_tables_rows)
+                        #print(df_tables_rows)
                     else:
                         df_tables_rows = pd.DataFrame([{
                             'DatasetId': '0',
@@ -217,7 +217,7 @@ def upload_file(uploaded_files):
         })
 
         # Debugging output to inspect data
-        print("Measures DataFrame:", df_measures)
+        #print("Measures DataFrame:", df_measures)
 
         df_normalized = pd.merge(pd.merge(df_tables, df_measures, left_on='NomeTabela', right_on='NomeTabela', how='left'), df_columns, right_on='NomeTabela', left_on='NomeTabela', how='left')
         
