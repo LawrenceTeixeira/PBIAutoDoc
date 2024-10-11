@@ -5,6 +5,10 @@ import pandas as pd
 from litellm import completion
 from zipfile import ZipFile
 import json
+import sys
+
+# Adicionando o diretório pai ao caminho
+sys.path.append(os.path.abspath('..'))
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports
