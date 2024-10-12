@@ -35,7 +35,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-3.5-turbo','gpt-4o', 'azure/gpt-4o','claude-3-5-sonnet-20240620', 'gemini/gemini-1.5-pro', 'groq/llama-3.1-70b-versatile'))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-3.5-turbo','gpt-4o', 'azure/gpt-4o','claude-3-5-sonnet-20240620', 'gemini/gemini-1.5-pro-002', 'groq/llama-3.2-90b-text-preview'))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
