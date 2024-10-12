@@ -7,6 +7,7 @@ app = 'autodocchat'
 primary_region = 'gru'
 
 [build]
+  dockerfile = "../Dockerfile_Chat"
 
 [http_service]
   internal_port = 8501
