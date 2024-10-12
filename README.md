@@ -125,12 +125,6 @@ flyctl launch
 flyctl deploy
 ```
 
-## Fazer o deploy do Chat no Fly.io
-```sh
-flyctl launch
-flyctl deploy --config chat/fly.toml
-```
-
 ## Fazer fazer o login e logout no Fly
 ```sh
 flyctl auth login

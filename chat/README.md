@@ -99,10 +99,6 @@ O **Chat** é projetado para administradores e analistas que desejam uma intera�
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests para melhorar o Chat.
 
-## Licença
-
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
-
 ## Author
 
 - LinkedIn: [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)
@@ -111,7 +107,3 @@ Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICEN
 ## Contato
 
 Para mais informações, entre em contato pelo link: [Contato](https://lawrence.eti.br/contact/)
-
----
-
-Converse diretamente com seu modelo de IA e maximize a eficiência de suas análises com o **Chat**.
