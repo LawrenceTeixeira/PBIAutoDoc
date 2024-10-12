@@ -9,6 +9,7 @@ COPY requirements.txt /app/
 # install the dependencies and packages in the requirements file
 RUN pip install -r requirements.txt
 
+COPY .. /app
 COPY . /app
 
 EXPOSE 8501
