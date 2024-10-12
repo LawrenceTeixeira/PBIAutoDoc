@@ -12,9 +12,8 @@ O **Chat** é uma ferramenta complementar ao AutoDoc, projetada para oferecer um
 - **Flexibilidade de Modelos**: Escolha entre diversos modelos de linguagem (OpenAI GPT-4, Azure OpenAI, Llama, entre outros) para adaptar o Chat às suas necessidades específicas.
 - **Eficiência e Personalização**: Automatize respostas e fluxos de trabalho com base nas interações, economizando tempo e garantindo precisão nas análises.
 
-## Execute o Chat
-
-Para executar o Chat e começar a interagir com o seu modelo, siga as instruções de instalação e uso abaixo.
+## Execute o AutoDoc
+Para executar o Autodoc click neste link: [Chat - Converse com o modelo](https://autodocchat.fly.dev/)
 
 ## Como Usar o Chat
 

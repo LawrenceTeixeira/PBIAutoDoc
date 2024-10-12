@@ -220,8 +220,8 @@ Abaixo estão as informações do relatório do Power BI para ser usado como bas
 def configure_app():
     """Configura a aparência e o layout do aplicativo Streamlit."""
     st.set_page_config(
-        page_title="AutoDoc",
-        page_icon="📊",
+        page_title="Chat",
+        page_icon="💬",
         layout="wide",
         initial_sidebar_state="expanded",
     )

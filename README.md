@@ -60,8 +60,6 @@ graph TD
     X --> Y[Fim]
 ```
 
-
-
 ## Como Usar o AutoDoc
 
 1. Preencha as informações do App ID, Tenant ID e Secret Value na barra lateral.
