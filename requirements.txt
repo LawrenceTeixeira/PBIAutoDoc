@@ -7,4 +7,3 @@ python-dotenv
 python-docx
 xlsxwriter
 streamlit-javascript
-chunkipy
