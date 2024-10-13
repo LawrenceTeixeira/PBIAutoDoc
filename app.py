@@ -179,7 +179,6 @@ def buttons_download(df):
         dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
         
         prompt = generate_promt_medidas(dados_relatorio_PBI_medidas[0])
-        print(prompt[:10000])  # Exibe os primeiros 1000 caracteres, por exemplo
 
         st.text_area("Prompt medidas:", value=prompt, height=300)
 
