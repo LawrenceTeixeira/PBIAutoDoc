@@ -13,7 +13,7 @@ from documenta import generate_docx, generate_excel, text_to_document, Documenta
 load_dotenv()
 
 MODELO = ""
-MAX_TOKENS = 100000
+MAX_TOKENS = 0
 
 def configure_app():
     """Configura a aparência e o layout do aplicativo Streamlit."""
@@ -60,13 +60,13 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             uploaded_files = None  # Nenhum arquivo será necessário            
 
         # Set a slider to select max tokens
-        MAX_TOKENS = st.sidebar.number_input('Selecione o máximo de Tokens:', min_value=50, max_value=200000, value=100000, step=50)
+        max_tokens = st.sidebar.number_input('Selecione o máximo de Tokens:', min_value=50, max_value=200000, value=100000, step=50)
 
         "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
              
-    return app_id, tenant_id, secret_value, uploaded_files, modelo
+    return app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens
 
 def detailed_description():
     """Mostra uma explicação detalhada sobre o aplicativo."""
@@ -291,11 +291,12 @@ def main():
         
     configure_app()
             
-    global API_KEY, MODELO
+    global API_KEY, MODELO, MAX_TOKENS
 
-    app_id, tenant_id, secret_value, uploaded_files, modelo = sidebar_inputs()
+    app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens = sidebar_inputs()
     
     MODELO = modelo
+    MAX_TOKENS = max_tokens
             
     if app_id and tenant_id and secret_value:
         headers = get_token(app_id, tenant_id, secret_value)
