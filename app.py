@@ -29,7 +29,7 @@ def configure_app():
     """)
 
 def sidebar_inputs():
-    """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo."""
+    """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo template do Power BI."""
     with st.sidebar:
         
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
