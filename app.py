@@ -7,12 +7,13 @@ import json
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
-from documenta import generate_docx, generate_excel, text_to_document, generate_promt, defined_prompt, Documenta
+from documenta import generate_docx, generate_excel, text_to_document, generate_promt, Documenta, defined_prompt_fontes, defined_prompt_medidas
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
 MODELO = ""
+MAX_TOKENS = 100000
 
 def configure_app():
     """Configura a aparência e o layout do aplicativo Streamlit."""
@@ -57,11 +58,14 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             tenant_id = st.text_input(label='Tenant ID')
             secret_value = st.text_input(label='Secret value')
             uploaded_files = None  # Nenhum arquivo será necessário            
-        ""
+
+        # Set a slider to select max tokens
+        MAX_TOKENS = st.sidebar.number_input('Selecione o máximo de Tokens:', min_value=50, max_value=200000, value=100000, step=50)
+
         "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
-
+             
     return app_id, tenant_id, secret_value, uploaded_files, modelo
 
 def detailed_description():
@@ -91,12 +95,14 @@ def detailed_description():
 
 def sidebar_description():
     """Mostra uma descrição resumida com botão para mais informações na barra lateral."""
+    
     st.sidebar.header("Sobre o App")
     if st.sidebar.button("Informações"):
         st.session_state.show_description = not st.session_state.get('show_description', False)
+        
     if st.session_state.get('show_description', False):
         detailed_description()
-
+                
 def main_content(headers=None, uploaded_files=None):
     """Exibe as informações principais do aplicativo."""
     if uploaded_files:
@@ -182,10 +188,41 @@ def buttons_download(df):
         gerando = f"Gerando documentação usando o modelo {MODELO}, por favor aguarde..."
         
         with st.spinner(gerando):
-            text, measures_df, tables_df = text_to_document(df)
-            prompts = defined_prompt()
+            
+            # Aqui vai ser a grande mudança no çodigo
+            
+            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+            # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
+            medidas_do_relatorio_df = pd.DataFrame()
+            fontes_de_dados_df = pd.DataFrame()
 
-            response_info, response_tables, response_measures, response_source = Documenta(prompts, text, MODELO)
+            for text in dados_relatorio_PBI_fontes:
+                response = Documenta(defined_prompt_fontes(), text, MODELO)
+
+                # Verifica se response contem as Fontes_de_Dados
+                if 'Fontes_de_Dados' in response:
+                    ## add to fonte_de_dados_df response["Fontes_de_Dados"]
+                    fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+
+            for text in dados_relatorio_PBI_medidas:
+                response = Documenta(defined_prompt_medidas(), text, MODELO)
+
+                if 'Medidas_do_Relatorio'  in response:
+                    ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
+                    medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+            
+            
+            # -------------------- fim da mudança --------------------
+            
+            
+            #text, measures_df, tables_df = text_to_document(df)
+            #prompts = defined_prompt()
+
+            #response_info, response_tables, response_measures, response_source = Documenta(prompts, text, MODELO)
+            
+            
+            
+            
             
             # Update the 'FonteDados' field in the response data
             update_fonte_dados(response_source, tables_df)
@@ -267,6 +304,8 @@ def main():
         st.session_state.show_description = False
 
     sidebar_description()
+
+
 
 if __name__ == "__main__":
     main()
