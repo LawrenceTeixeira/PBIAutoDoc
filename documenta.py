@@ -273,8 +273,8 @@ def add_measure_table(doc, measures, measures_df):
     if isinstance(measures, list):
         for measure in measures:
             add_measure_row(measure)
-    elif 'Medidas_do_Relatorio' in measures:
-        for measure in measures['Medidas_do_Relatorio']:
+    else:
+        for measure in measures:
             add_measure_row(measure)
 
     for row in table.rows:
@@ -364,12 +364,17 @@ def add_centered_title(doc, title, color=RGBColor(0, 0, 128)):
     run.font.size = Pt(20)
     run.font.color.rgb = color
 
-def generate_promt(text):
+def generate_promt_medidas(text):
     
     prompts = defined_prompt_medidas().strip()
     
     return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
 
+def generate_promt_fontes(text):
+    
+    prompts = defined_prompt_fontes().strip()
+    
+    return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
     
 def generate_docx(response_info, response_tables, response_measures, response_source, measures_df):
     """Gera um documento Word com a documentação do relatório."""
@@ -386,7 +391,7 @@ def generate_docx(response_info, response_tables, response_measures, response_so
         
     # Title and Description
     set_heading(doc, 'Relatório:', level=1)
-    doc.add_paragraph(response_info["Relatorio"]["Titulo"], style='Body Text')
+    doc.add_paragraph(response_info["Titulo"], style='Body Text')
 
     # Data
     set_heading(doc, 'Data:', level=1)
@@ -394,19 +399,19 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     doc.add_paragraph(today.strftime("%d/%m/%Y"), style='Body Text')
     
     set_heading(doc, 'Descrição:', level=1)
-    doc.add_paragraph(response_info["Relatorio"]["Descricao"], style='Body Text')
+    doc.add_paragraph(response_info["Descricao"], style='Body Text')
     
     # Main KPIs and Metrics
     set_heading(doc, 'Principais KPIs e Métricas:', level=1)
-    add_bullet_list(doc, response_info["Relatorio"]["Principais_KPIs_e_Metricas"])
+    add_bullet_list(doc, response_info["Principais_KPIs_e_Metricas"])
     
     # Target Audience
     set_heading(doc, 'Público alvo:', level=1)
-    doc.add_paragraph(response_info["Relatorio"]["Publico_Alvo"], style='Body Text')
+    doc.add_paragraph(response_info["Publico_Alvo"], style='Body Text')
     
     # Use Cases
     set_heading(doc, 'Exemplos de uso:', level=1)
-    add_bullet_list(doc, response_info["Relatorio"]["Exemplos_de_Uso"])
+    add_bullet_list(doc, response_info["Exemplos_de_Uso"])
     
     # Report Tables
     set_heading(doc, 'Tabelas', level=1)
@@ -509,14 +514,18 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
 
     # Prepara para enviar as medidas do relatório em partes por causa da limitação de tokens do modelo
     #monta um texto com o nome da medida e a expressao da medida
+    pd.set_option('display.max_colwidth', None)
+    
     measures_df['NomeMedidaExpressao'] = '<tag> Nome da medida: ' + measures_df['NomeMedida'] + ' Expressão da medida: ' + measures_df['ExpressaoMedida']
-
+    
+    print(measures_df['NomeMedidaExpressao'].to_string(index=False)[:100000])
+    
     text_chunker_medidas = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
     chunks_medidas = text_chunker_medidas.chunk(measures_df['NomeMedidaExpressao'].to_string(index=False))
 
     # Prepara para enviar as fontes dos dados do relatório em partes por causa da limitação de tokens do modelo
     #monta um texto com o nome da tabela e fontededados
-    tables_df['NomeTabelaFonteDados'] = '<tag> Nome da fonte de dados:' + tables_df['NomeTabela'] + ' Código M da fonte de dados: ' + tables_df['FonteDados']
+    tables_df['NomeTabelaFonteDados'] = '<tag> NomeTabela: ' + tables_df['NomeTabela'] + ' Fonte de Dados: ' + tables_df['FonteDados']
 
     text_chunker_fontes = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
     chunks_fontes = text_chunker_fontes.chunk(tables_df['NomeTabelaFonteDados'].to_string(index=False))

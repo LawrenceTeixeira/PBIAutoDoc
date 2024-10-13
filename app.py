@@ -7,7 +7,7 @@ import json
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
-from documenta import generate_docx, generate_excel, text_to_document, generate_promt, Documenta, defined_prompt_fontes, defined_prompt_medidas
+from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -178,7 +178,8 @@ def buttons_download(df):
     if verprompt_medidas:
         dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
         
-        prompt = generate_promt(dados_relatorio_PBI_medidas[0])
+        prompt = generate_promt_medidas(dados_relatorio_PBI_medidas[0])
+        print(prompt[:10000])  # Exibe os primeiros 1000 caracteres, por exemplo
 
         st.text_area("Prompt medidas:", value=prompt, height=300)
 
@@ -187,7 +188,7 @@ def buttons_download(df):
     if verprompt_fontes:
         dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
         
-        prompt = generate_promt(dados_relatorio_PBI_fontes[0])
+        prompt = generate_promt_fontes(dados_relatorio_PBI_fontes[0])
 
         st.text_area("Prompt fontes de dados:", value=prompt, height=300)
 
@@ -195,7 +196,7 @@ def buttons_download(df):
     if st.button("Gerar documentação"):
         
         # Mostrando uma mensgem de carregamento
-        gerando = f"Gerando documentação usando o modelo {MODELO}, confiugaro com {MAX_TOKENS} máximo de tokens, por favor aguarde..."
+        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com {MAX_TOKENS} máximo de tokens, por favor aguarde..."
         
         with st.spinner(gerando):
             
@@ -235,11 +236,15 @@ def buttons_download(df):
             
             response_info = response['Relatorio']
             response_tables = response['Tabelas_do_Relatorio']
-            response_measures = medidas_do_relatorio_df.to_json(orient='records')
-            response_source = fontes_de_dados_df.to_json(orient='records')
+            response_measures = medidas_do_relatorio_df.to_dict(orient='records')
+            response_source = fontes_de_dados_df.to_dict(orient='records')
                         
-            # Update the 'FonteDados' field in the response data
+            # Update the 'FonteDados' field in the response 
+            print('ANTES:', response_source)
             update_fonte_dados(response_source, tables_df)
+            print('DEPOIS:', response_source)
+            
+            print("tables: ",tables_df)
                                                             
             # Store the response data in the session state for later use
             st.session_state['response_info'] = response_info
