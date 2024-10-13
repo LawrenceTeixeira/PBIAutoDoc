@@ -453,8 +453,8 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         
         if isinstance(response_measures, list):
             measures = pd.DataFrame(response_measures)
-        elif 'Medidas_do_Relatorio' in response_measures:
-            measures = pd.DataFrame(response_measures['Medidas_do_Relatorio'])
+        elif isinstance(response_measures, dict):
+            measures = pd.DataFrame(response_measures)
         else:
             measures = pd.DataFrame()
             
@@ -462,8 +462,8 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         
         if isinstance(response_source, list):
             sources = pd.DataFrame(response_source)
-        elif 'Fontes_de_Dados' in response_source:
-            sources = pd.DataFrame(response_source['Fontes_de_Dados'])
+        elif isinstance(response_source, dict):
+            sources = pd.DataFrame(response_source)
         else:
             sources = pd.DataFrame()
             
@@ -474,7 +474,7 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         df_medidas = pd.concat(all_measures, ignore_index=True)
         df_fontes = pd.concat(all_sources, ignore_index=True)
         
-        if 'Medidas_do_Relatorio' in response_measures and 'Nome' in response_measures['Medidas_do_Relatorio']:
+        if isinstance(response_source, dict):
             df_medidas = pd.merge(df_medidas, measures_df,  left_on='Nome', right_on='Medida', how='left')
             df_medidas = df_medidas[['Medida', 'Descricao', 'expression']]
     
@@ -517,9 +517,7 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
     pd.set_option('display.max_colwidth', None)
     
     measures_df['NomeMedidaExpressao'] = '<tag> Nome da medida: ' + measures_df['NomeMedida'] + ' Expressão da medida: ' + measures_df['ExpressaoMedida']
-    
-    print(measures_df['NomeMedidaExpressao'].to_string(index=False)[:100000])
-    
+        
     text_chunker_medidas = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
     chunks_medidas = text_chunker_medidas.chunk(measures_df['NomeMedidaExpressao'].to_string(index=False))
 

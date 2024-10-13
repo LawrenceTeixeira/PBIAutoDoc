@@ -199,14 +199,15 @@ def buttons_download(df):
         gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com {MAX_TOKENS} máximo de tokens, por favor aguarde..."
         
         with st.spinner(gerando):
-            
-            # Aqui vai ser a grande mudança no çodigo
-            
-            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
             # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
+            
+            # define the prompts for measures and sources            
+            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
-
+            
+            # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             for text in dados_relatorio_PBI_fontes:
                 response = Documenta(defined_prompt_fontes(), text, MODELO)
 
@@ -222,29 +223,14 @@ def buttons_download(df):
                     ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
                     medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
             
-            
-            # -------------------- fim da mudança --------------------
-            
-            ## inicio codigo antigo
-            #text, measures_df, tables_df = text_to_document(df)
-            #prompts = defined_prompt()
-
-            #response_info, response_tables, response_measures, response_source = Documenta(prompts, text, MODELO)
-            
-            # Define as variáveis de resposta para manter consistência com o código anterior
-            ## fim codigo antigo
-            
+            # define the response data for the document            
             response_info = response['Relatorio']
             response_tables = response['Tabelas_do_Relatorio']
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
             response_source = fontes_de_dados_df.to_dict(orient='records')
                         
             # Update the 'FonteDados' field in the response 
-            print('ANTES:', response_source)
             update_fonte_dados(response_source, tables_df)
-            print('DEPOIS:', response_source)
-            
-            print("tables: ",tables_df)
                                                             
             # Store the response data in the session state for later use
             st.session_state['response_info'] = response_info
