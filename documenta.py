@@ -366,7 +366,7 @@ def add_centered_title(doc, title, color=RGBColor(0, 0, 128)):
 
 def generate_promt(text):
     
-    prompts = defined_prompt().strip()
+    prompts = defined_prompt_medidas().strip()
     
     return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
 

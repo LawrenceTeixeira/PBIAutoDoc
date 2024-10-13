@@ -173,19 +173,29 @@ def buttons_download(df):
     if on:
         st.dataframe(df)
         
-    verprompt = st.checkbox("Mostrar Prompt")
+    verprompt_medidas = st.checkbox("Mostrar Prompt das medidas")
 
-    if verprompt:
-        text, measures_df, tables_df = text_to_document(df)
+    if verprompt_medidas:
+        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
         
-        prompt = generate_promt(text)
+        prompt = generate_promt(dados_relatorio_PBI_medidas[0])
 
-        st.text_area("Prompt", value=prompt, height=300)    
+        st.text_area("Prompt medidas:", value=prompt, height=300)
+
+    verprompt_fontes = st.checkbox("Mostrar Prompt das fontes de dados")
+
+    if verprompt_fontes:
+        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+        
+        prompt = generate_promt(dados_relatorio_PBI_fontes[0])
+
+        st.text_area("Prompt fontes de dados:", value=prompt, height=300)
+
         
     if st.button("Gerar documentação"):
         
         # Mostrando uma mensgem de carregamento
-        gerando = f"Gerando documentação usando o modelo {MODELO}, por favor aguarde..."
+        gerando = f"Gerando documentação usando o modelo {MODELO}, confiugaro com {MAX_TOKENS} máximo de tokens, por favor aguarde..."
         
         with st.spinner(gerando):
             
@@ -214,16 +224,20 @@ def buttons_download(df):
             
             # -------------------- fim da mudança --------------------
             
-            
+            ## inicio codigo antigo
             #text, measures_df, tables_df = text_to_document(df)
             #prompts = defined_prompt()
 
             #response_info, response_tables, response_measures, response_source = Documenta(prompts, text, MODELO)
             
+            # Define as variáveis de resposta para manter consistência com o código anterior
+            ## fim codigo antigo
             
-            
-            
-            
+            response_info = response['Relatorio']
+            response_tables = response['Tabelas_do_Relatorio']
+            response_measures = medidas_do_relatorio_df.to_json(orient='records')
+            response_source = fontes_de_dados_df.to_json(orient='records')
+                        
             # Update the 'FonteDados' field in the response data
             update_fonte_dados(response_source, tables_df)
                                                             
