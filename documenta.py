@@ -437,15 +437,15 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         all_measures = []
         all_sources = []
                 
-        info = pd.DataFrame([response_info['Relatorio']]).transpose()
+        info = pd.DataFrame([response_info]).transpose()
         info.reset_index(inplace=True)
         info.columns = ['Informações do relatório', 'Dados']
         all_info.append(info)
         
         if isinstance(response_tables, list):
             tables = pd.DataFrame(response_tables)
-        elif 'Tabelas_do_Relatorio' in response_tables:
-            tables = pd.DataFrame(response_tables['Tabelas_do_Relatorio'])
+        elif isinstance(response_tables, dict):
+            tables = pd.DataFrame(response_tables)
         else:
             tables = pd.DataFrame()
             
