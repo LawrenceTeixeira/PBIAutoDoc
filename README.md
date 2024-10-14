@@ -96,6 +96,7 @@ source .venv/bin/activate
 
 ```sh
 pip install -r requirements.txt
+pip install --no-cache-dir chunkipy
 ```
 
 5. Crie um arquivo `.env` com as variáveis de ambiente necessárias:
