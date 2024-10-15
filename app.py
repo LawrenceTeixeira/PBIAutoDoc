@@ -105,14 +105,23 @@ def sidebar_description():
                 
 def main_content(headers=None, uploaded_files=None):
     """Exibe as informações principais do aplicativo."""
+    
+    st.session_state['df_relationships'] = None
+
     if uploaded_files:
-        df_normalized = upload_file(uploaded_files)
+        df_normalized, df_relationships = upload_file(uploaded_files)
+
+        # Store the df_relationships data in the session state for later use
+        st.session_state['df_relationships'] = df_relationships
+
         if isinstance(df_normalized, pd.DataFrame):
             buttons_download(df_normalized)
         else:
             st.error("Erro ao processar o arquivo enviado. Por favor, verifique o formato do arquivo.")
 
     if headers:
+        
+        
         workspace_dict = get_workspaces_id(headers)
         
         if workspace_dict:
@@ -176,7 +185,7 @@ def buttons_download(df):
     verprompt_medidas = st.checkbox("Mostrar Prompt das medidas")
 
     if verprompt_medidas:
-        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         
         prompt = generate_promt_medidas(dados_relatorio_PBI_medidas[0])
 
@@ -185,7 +194,7 @@ def buttons_download(df):
     verprompt_fontes = st.checkbox("Mostrar Prompt das fontes de dados")
 
     if verprompt_fontes:
-        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         
         prompt = generate_promt_fontes(dados_relatorio_PBI_fontes[0])
 
@@ -201,7 +210,7 @@ def buttons_download(df):
             # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             
             # define the prompts for measures and sources            
-            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df = text_to_document(df, max_tokens=MAX_TOKENS)
+            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
 
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
@@ -227,6 +236,7 @@ def buttons_download(df):
             response_tables = response['Tabelas_do_Relatorio']
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
             response_source = fontes_de_dados_df.to_dict(orient='records')
+            
                         
             # Update the 'FonteDados' field in the response 
             update_fonte_dados(response_source, tables_df)
@@ -237,7 +247,8 @@ def buttons_download(df):
             st.session_state['response_measures'] = response_measures
             st.session_state['response_source'] = response_source
             st.session_state['measures_df'] = measures_df
-            
+            st.session_state['df_colunas'] = df_colunas
+
             st.session_state.button = False
     
     verprompt = st.checkbox("Mostrar JSONs", key='mostrar_json', disabled=st.session_state.button )
@@ -260,7 +271,7 @@ def buttons_download(df):
         
         if st.button("Exporta documentação para excel", disabled=st.session_state.button):
             with st.spinner("Gerando arquivo, por favor aguarde..."):
-                buffer = generate_excel(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'])
+                buffer = generate_excel(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
                 
                 # Utilize st.download_button para permitir o download direto
                 st.download_button(
@@ -273,7 +284,7 @@ def buttons_download(df):
     with col2:
         if st.button("Exporta documentação para word", disabled=st.session_state.button):
             with st.spinner("Gerando arquivo, por favor aguarde..."):
-                doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'])
+                doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
                 buffer = BytesIO()
                 doc.save(buffer)
                 buffer.seek(0)

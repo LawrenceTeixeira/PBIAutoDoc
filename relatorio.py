@@ -122,6 +122,21 @@ def clean_reports(reports, option):
 
     return dataset_desnormalized
 
+def extract_relationships(json_data):
+    relationships = json_data['model'].get('relationships', [])
+    
+    relationship_info = []
+    
+    for rel in relationships:
+        relationship_info.append({
+            'Name': rel.get('name', ''),
+            'FromTable': rel.get('fromTable', ''),
+            'FromColumn': rel.get('fromColumn', ''),
+            'ToTable': rel.get('toTable', ''),
+            'ToColumn': rel.get('toColumn', '')
+        })
+    
+    return relationship_info
 
 def upload_file(uploaded_files):
     """Processa o upload do arquivo .pbit ou .zip e extrai os dados relevantes."""
@@ -216,11 +231,14 @@ def upload_file(uploaded_files):
             'ExpressaoMedida': measure_expression
         })
 
-        # Debugging output to inspect data
-        #print("Measures DataFrame:", df_measures)
+        # Extract relationship information
+        relationship_info = extract_relationships(content)
+
+        # Create a DataFrame
+        df_relationships = pd.DataFrame(relationship_info)
 
         df_normalized = pd.merge(pd.merge(df_tables, df_measures, left_on='NomeTabela', right_on='NomeTabela', how='left'), df_columns, right_on='NomeTabela', left_on='NomeTabela', how='left')
         
-        return df_normalized
+        return df_normalized, df_relationships
     else:
         return 'Arquivo não suportado'

@@ -128,9 +128,6 @@ def upload_file(uploaded_files):
             'ExpressaoMedida': measure_expression
         })
 
-        # Debugging output to inspect data
-        #print("Measures DataFrame:", df_measures)
-
         # Extract relationship information
         relationship_info = extract_relationships(content)
 

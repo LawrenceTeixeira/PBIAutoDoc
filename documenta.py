@@ -375,8 +375,81 @@ def generate_promt_fontes(text):
     prompts = defined_prompt_fontes().strip()
     
     return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
+
+from docx.shared import Inches
+
+def add_colunas_table(doc, df_colunas):
+    table = doc.add_table(rows=1, cols=5)
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'Tabela'
+    hdr_cells[1].text = 'Coluna'
+    hdr_cells[2].text = 'Tipo'
+    hdr_cells[3].text = 'Calculada ou Dados'
+    hdr_cells[4].text = 'Expressão'
     
-def generate_docx(response_info, response_tables, response_measures, response_source, measures_df):
+    # Style header cells
+    for cell in hdr_cells:
+        style_table_header(cell)
+    
+    # Adjust column widths
+    widths = [Inches(2.0), Inches(2.0), Inches(2.0), Inches(1.5), Inches(3.0)]  # Set appropriate widths for columns
+    for i, width in enumerate(widths):
+        set_column_width(table.columns[i], width)
+
+    # Add rows from dataframe
+    for _, row in df_colunas.iterrows():
+        row_cells = table.add_row().cells
+        row_cells[0].text = str(row['NomeTabela'])
+        row_cells[1].text = str(row['NomeColuna'])
+        row_cells[2].text = str(row['TipoDadoColuna'])
+        row_cells[3].text = str(row['TipoColuna'])
+        row_cells[4].text = str(row['ExpressaoColuna'])
+    
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                paragraph.style = 'Body Text'
+    
+    add_table_borders(table)
+
+def add_relationamentos_table(doc, df_relacionamentos):
+    # Criar a tabela com 4 colunas
+    table = doc.add_table(rows=1, cols=4)
+    
+    # Definir os cabeçalhos da tabela
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = 'De tabela'
+    hdr_cells[1].text = 'De coluna'
+    hdr_cells[2].text = 'Para tabela'
+    hdr_cells[3].text = 'Para coluna'
+    
+    # Estilizar as células do cabeçalho (se necessário)
+    for cell in hdr_cells:
+        style_table_header(cell)
+    
+    # Ajustar a largura das colunas
+    widths = [Inches(2.0), Inches(2.0), Inches(2.0), Inches(2.0)]  # Defina a largura apropriada para cada coluna
+    for i, width in enumerate(widths):
+        set_column_width(table.columns[i], width)
+    
+    # Adicionar as linhas com os dados do dataframe
+    for _, row in df_relacionamentos.iterrows():
+        row_cells = table.add_row().cells
+        row_cells[0].text = row['FromTable']
+        row_cells[1].text = row['FromColumn']
+        row_cells[2].text = row['ToTable']
+        row_cells[3].text = row['ToColumn']
+    
+    # Estilizar o corpo da tabela
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                paragraph.style = 'Body Text'
+    
+    # Adicionar bordas à tabela (se necessário)
+    add_table_borders(table)
+
+def generate_docx(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas):
     """Gera um documento Word com a documentação do relatório."""
     doc = Document()
     
@@ -425,9 +498,18 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     set_heading(doc, 'Fonte de dados', level=1)
     add_data_sources_table(doc, response_source)
 
+    # Columns
+    set_heading(doc, 'Colunas', level=1)
+    add_colunas_table(doc, df_colunas)
+
+    # Relationships
+    if df_relationships is not None:
+        set_heading(doc, 'Relacionamentos', level=1)
+        add_relationamentos_table(doc, df_relationships)
+
     return doc
 
-def generate_excel(response_info, response_tables, response_measures, response_source, measures_df):
+def generate_excel(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas):
     """Gera um arquivo Excel com a documentação do relatório."""
     buffer = io.BytesIO()
     
@@ -482,6 +564,12 @@ def generate_excel(response_info, response_tables, response_measures, response_s
         df_tabelas.to_excel(writer, sheet_name='tabelas', index=False) 
         df_medidas.to_excel(writer, sheet_name='medidas', index=False) 
         df_fontes.to_excel(writer, sheet_name='fonte_de_dados', index=False)
+
+        if df_relationships is not None:
+            df_relationships.to_excel(writer, sheet_name='relacionamentos', index=False)
+
+        df_colunas.to_excel(writer, sheet_name='colunas', index=False)
+
             
     buffer.seek(0)
     return buffer
@@ -490,7 +578,10 @@ def generate_excel(response_info, response_tables, response_measures, response_s
 
 def text_to_document(df, df_relationships=None, max_tokens=4096):
     """Gera o texto para documentação baseado nos dados do DataFrame."""
-
+    
+    # Define o tamanho máximo de tokens para o modelo LLM
+    pd.set_option('display.max_colwidth', None)
+    
     # Faz a leitura dos dados do relatório do Power BI para a preparação para gerar o relatório
     tables_df = df[df['NomeTabela'].notnull() & df['FonteDados'].notnull()]
     tables_df = tables_df[['NomeTabela', 'FonteDados']].drop_duplicates().reset_index(drop=True)
@@ -513,9 +604,7 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
         df_relationships = pd.DataFrame()
 
     # Prepara para enviar as medidas do relatório em partes por causa da limitação de tokens do modelo
-    #monta um texto com o nome da medida e a expressao da medida
-    pd.set_option('display.max_colwidth', None)
-    
+    #monta um texto com o nome da medida e a expressao da medida    
     measures_df['NomeMedidaExpressao'] = '<tag> Nome da medida: ' + measures_df['NomeMedida'] + ' Expressão da medida: ' + measures_df['ExpressaoMedida']
         
     text_chunker_medidas = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
@@ -562,4 +651,4 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
             )
 
 
-    return document_texts_medidas, document_texts_fontes, measures_df, tables_df
+    return document_texts_medidas, document_texts_fontes, measures_df, tables_df, df_colunas
