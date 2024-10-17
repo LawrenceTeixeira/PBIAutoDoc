@@ -223,7 +223,7 @@ def buttons_download(df):
                 response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS)
                 
                 # Verifica se response contem as 'Relatório' na primeira interação
-                if Uma and 'Relatório' in response:
+                if Uma and 'Relatorio' in response:
                     Uma = False
                     response_info = response['Relatorio']
                     response_tables = response['Tabelas_do_Relatorio']
@@ -237,7 +237,7 @@ def buttons_download(df):
                 response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS)
 
                 # Verifica se response contem as 'Relatório' na primeira interação
-                if Uma and 'Relatório' in response:
+                if Uma and 'Relatorio' in response:
                     Uma = False
                     response_info = response['Relatorio']
                     response_tables = response['Tabelas_do_Relatorio']
