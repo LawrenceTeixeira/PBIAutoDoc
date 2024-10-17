@@ -184,7 +184,8 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
-
+        print(f"Modelo gpt-4o da Open AI executado com sucesso.")
+        
     return response_content
 
 def Documenta(prompt, text, modelo, max_tokens=4096):
