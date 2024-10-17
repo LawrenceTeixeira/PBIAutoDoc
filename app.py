@@ -217,7 +217,7 @@ def buttons_download(df):
             
             # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             for text in dados_relatorio_PBI_fontes:
-                response = Documenta(defined_prompt_fontes(), text, MODELO)
+                response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS)
 
                 # Verifica se response contem as Fontes_de_Dados
                 if 'Fontes_de_Dados' in response:
@@ -225,7 +225,7 @@ def buttons_download(df):
                     fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
 
             for text in dados_relatorio_PBI_medidas:
-                response = Documenta(defined_prompt_medidas(), text, MODELO)
+                response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS)
 
                 if 'Medidas_do_Relatorio'  in response:
                     ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]

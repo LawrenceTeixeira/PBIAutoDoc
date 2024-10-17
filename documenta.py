@@ -161,7 +161,7 @@ Abaixo estão dados do relatório do Power BI a ser documentado:"""
 def split_by_tag(text):
     return [t for t in text.split("<tag>") if t != '' and ' ']
 
-def client_chat_LiteLLM(modelo, messages):    
+def client_chat_LiteLLM(modelo, messages, maxtokens=4096):    
     """Interage com qualquer modelo unsando LiteLLM para obter respostas.
        Mais informações em: https://docs.litellm.ai/docs/providers
     """
@@ -169,7 +169,7 @@ def client_chat_LiteLLM(modelo, messages):
         response = completion(
             model=modelo,
             temperature=0,
-            max_tokens=4096,
+            max_tokens=maxtokens,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
@@ -179,7 +179,7 @@ def client_chat_LiteLLM(modelo, messages):
             
     return response_content
 
-def Documenta(prompt, text, modelo):
+def Documenta(prompt, text, modelo, max_tokens=4096):
     """Gera a documentação do relatório em formato JSON."""
     
     messages = [
@@ -189,7 +189,7 @@ def Documenta(prompt, text, modelo):
     
     print('Usando o modelo:', modelo)
     
-    response = client_chat_LiteLLM(modelo, messages)
+    response = client_chat_LiteLLM(modelo, messages, max_tokens)
         
     return response
 
