@@ -595,6 +595,9 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
     df_colunas['TipoColuna'] = df_colunas['TipoColuna'].replace('N/A', '')
     df_colunas['ExpressaoColuna'] = df_colunas['ExpressaoColuna'].replace('N/A', '')
 
+    # filter the df_colunas not null
+    df_colunas = df_colunas[df_colunas['NomeColuna'].notnull()]
+
     if not df.empty and 'ReportName' in df.columns:
         report_name = df['ReportName'].iloc[0]
     else:
