@@ -169,12 +169,13 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
         response = completion(
             model=modelo,
             temperature=0,
-            max_tokens=maxtokens,
+            max_tokens=4096,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
     except Exception as e:
         print(f"Erro ao chamar a API da OpenAI, corrigindo automaticamente... {str(e)}")
+
         response_content = {'error': str(e)}
             
     return response_content

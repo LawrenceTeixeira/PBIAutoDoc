@@ -60,7 +60,7 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             uploaded_files = None  # Nenhum arquivo será necessário            
 
         # Set a slider to select max tokens
-        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=100, max_value=200000, value=4096, step=1)
+        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=8192, value=4096, step=512)
 
         "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
@@ -215,9 +215,18 @@ def buttons_download(df):
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
             
+            dados_relatorio_PIB = []
+            Uma = True
+
             # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             for text in dados_relatorio_PBI_fontes:
+                                
                 response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS)
+                
+                # Verifica se response contem as 'Relatório' na primeira interação
+                if Uma and 'Relatório' in response:
+                    Uma = False
+                    dados_relatorio_PIB= response
 
                 # Verifica se response contem as Fontes_de_Dados
                 if 'Fontes_de_Dados' in response:
@@ -227,16 +236,20 @@ def buttons_download(df):
             for text in dados_relatorio_PBI_medidas:
                 response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS)
 
+                # Verifica se response contem as 'Relatório' na primeira interação
+                if Uma and 'Relatório' in response:
+                    Uma = False
+                    dados_relatorio_PIB= response
+
                 if 'Medidas_do_Relatorio'  in response:
                     ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
                     medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
             
             # define the response data for the document            
-            response_info = response['Relatorio']
-            response_tables = response['Tabelas_do_Relatorio']
+            response_info = dados_relatorio_PIB['Relatorio']
+            response_tables = dados_relatorio_PIB['Tabelas_do_Relatorio']
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
             response_source = fontes_de_dados_df.to_dict(orient='records')
-            
                         
             # Update the 'FonteDados' field in the response 
             update_fonte_dados(response_source, tables_df)
