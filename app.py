@@ -215,7 +215,6 @@ def buttons_download(df):
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
             
-            dados_relatorio_PIB = []
             Uma = True
 
             # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
@@ -226,7 +225,8 @@ def buttons_download(df):
                 # Verifica se response contem as 'Relatório' na primeira interação
                 if Uma and 'Relatório' in response:
                     Uma = False
-                    dados_relatorio_PIB= response
+                    response_info = response['Relatorio']
+                    response_tables = response['Tabelas_do_Relatorio']
 
                 # Verifica se response contem as Fontes_de_Dados
                 if 'Fontes_de_Dados' in response:
@@ -239,15 +239,14 @@ def buttons_download(df):
                 # Verifica se response contem as 'Relatório' na primeira interação
                 if Uma and 'Relatório' in response:
                     Uma = False
-                    dados_relatorio_PIB= response
+                    response_info = response['Relatorio']
+                    response_tables = response['Tabelas_do_Relatorio']
 
                 if 'Medidas_do_Relatorio'  in response:
                     ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
                     medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
             
             # define the response data for the document            
-            response_info = dados_relatorio_PIB['Relatorio']
-            response_tables = dados_relatorio_PIB['Tabelas_do_Relatorio']
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
             response_source = fontes_de_dados_df.to_dict(orient='records')
                         

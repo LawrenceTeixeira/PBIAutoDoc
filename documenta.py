@@ -165,6 +165,7 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
     """Interage com qualquer modelo unsando LiteLLM para obter respostas.
        Mais informações em: https://docs.litellm.ai/docs/providers
     """
+    count = 0
     try:
         response = completion(
             model=modelo,
@@ -174,10 +175,16 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
         )
         response_content = json.loads( response.choices[0].message.content )
     except Exception as e:
-        print(f"Erro ao chamar a API da OpenAI, corrigindo automaticamente... {str(e)}")
+        print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt4-o da Open AI. {str(e)}")
 
-        response_content = {'error': str(e)}
-            
+       # response = completion(
+       #     model='gpt-4o',
+       #     temperature=0,
+       #     max_tokens=4096,
+       #     messages=messages
+       # )
+       # response_content = json.loads( response.choices[0].message.content )
+        response_content = {}     
     return response_content
 
 def Documenta(prompt, text, modelo, max_tokens=4096):
