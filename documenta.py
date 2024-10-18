@@ -165,30 +165,36 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
     """Interage com qualquer modelo unsando LiteLLM para obter respostas.
        Mais informações em: https://docs.litellm.ai/docs/providers
     """
-    count = 0
+    count = 1
     try:
         response = completion(
             model=modelo,
             temperature=0,
-            max_tokens=4096,
+            max_tokens=maxtokens,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
+        count += 1
     except Exception as e:
-        print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt4-o da Open AI. {str(e)}")
+        print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt4-o da Open AI. {str(e)}. Tentativa:", count)
 
         response = completion(
             model='gpt-4o',
             temperature=0,
-            max_tokens=4096,
+            max_tokens=maxtokens,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
+        count += 1
         print(f"Modelo gpt-4o da Open AI executado com sucesso.")
+        if count > 10:
+            print(f"Erro ao chamar a API {str(e)}")
+            raise Exception(f"Erro ao chamar a API {str(e)}")
+        
         
     return response_content
 
-def Documenta(prompt, text, modelo, max_tokens=4096):
+def Documenta(prompt, text, modelo, max_tokens=4096, max_tokens_saida=4096):
     """Gera a documentação do relatório em formato JSON."""
     
     messages = [
@@ -196,9 +202,9 @@ def Documenta(prompt, text, modelo, max_tokens=4096):
         {"role": "user", "content": f"{prompt}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"}
     ]
     
-    print('Usando o modelo:', modelo)
+    print('Usando o modelo:', modelo, 'Máximo de tokens de sída:', max_tokens_saida)
     
-    response = client_chat_LiteLLM(modelo, messages, max_tokens)
+    response = client_chat_LiteLLM(modelo, messages, max_tokens_saida)
         
     return response
 
@@ -618,7 +624,7 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
     # Prepara para enviar as medidas do relatório em partes por causa da limitação de tokens do modelo
     #monta um texto com o nome da medida e a expressao da medida    
     measures_df['NomeMedidaExpressao'] = '<tag> Nome da medida: ' + measures_df['NomeMedida'] + ' Expressão da medida: ' + measures_df['ExpressaoMedida']
-        
+
     text_chunker_medidas = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
     chunks_medidas = text_chunker_medidas.chunk(measures_df['NomeMedidaExpressao'].to_string(index=False))
 

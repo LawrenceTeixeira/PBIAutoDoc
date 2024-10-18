@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from io import BytesIO
 import pandas as pd
 import json
+import tiktoken
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
@@ -14,6 +15,16 @@ load_dotenv()
 
 MODELO = ""
 MAX_TOKENS = 0
+MAX_TOKENS_SAIDA = 0
+
+def counttokens(text):
+    # Inicializando o tokenizador para o modelo desejado (neste exemplo, GPT-4)
+    encoding = tiktoken.get_encoding("cl100k_base")
+    
+    # Contar o número de tokens no texto fornecido
+    tokens = len(encoding.encode(text))
+    
+    return tokens
 
 def configure_app():
     """Configura a aparência e o layout do aplicativo Streamlit."""
@@ -60,13 +71,16 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             uploaded_files = None  # Nenhum arquivo será necessário            
 
         # Set a slider to select max tokens
-        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=8192, value=4096, step=512)
+        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=8192, value=4096, step=256)
+
+        # Set a slider to select max tokens
+        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=16384, value=8192, step=512)
 
         "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
              
-    return app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens
+    return app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens, max_tokens_saida
 
 def detailed_description():
     """Mostra uma explicação detalhada sobre o aplicativo."""
@@ -200,12 +214,36 @@ def buttons_download(df):
 
         st.text_area("Prompt fontes de dados:", value=prompt, height=300)
 
+    mostra_total_tokens = st.checkbox("Mostrar total de tokens por interação")
+
+    if mostra_total_tokens:
+        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+        
+        total_tokens = 0
+        stringmostra = ""
+        conta_interacao= 0
+        
+        for text in dados_relatorio_PBI_medidas:
+            conta_interacao += 1
+            total_tokens += counttokens(text)
+                        
+            stringmostra += f"{conta_interacao}ª interação (prompt das medidas)      | qtde tokens: {counttokens(text):,}\n"
+        
+        for text in dados_relatorio_PBI_fontes:
+            conta_interacao += 1
+            total_tokens += counttokens(text)
+            stringmostra += f"{conta_interacao}ª interação (prompt fonte de dados) | qtde tokens: {counttokens(text):,}\n"
+
+        stringmostra += f"\nTotal de interações: {conta_interacao}\nTotal de tokens (medidas + fontes de dados) de entrada: {total_tokens:,} tokens.\n"
+
+        st.text_area("Total de Tokens por interação:", value=stringmostra, height=300)
         
     if st.button("Gerar documentação"):
+        conta_interacao = 1
         
         # Mostrando uma mensgem de carregamento
-        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com {MAX_TOKENS} máximo de tokens, por favor aguarde..."
-        
+        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com máximo {MAX_TOKENS} tokens de entrada e {MAX_TOKENS_SAIDA} tokens de saída."
+                
         with st.spinner(gerando):
             # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             
@@ -219,32 +257,41 @@ def buttons_download(df):
 
             # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             for text in dados_relatorio_PBI_fontes:
-                                
-                response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS)
-                
-                # Verifica se response contem as 'Relatório' na primeira interação
-                if Uma and 'Relatorio' in response:
-                    Uma = False
-                    response_info = response['Relatorio']
-                    response_tables = response['Tabelas_do_Relatorio']
 
-                # Verifica se response contem as Fontes_de_Dados
-                if 'Fontes_de_Dados' in response:
-                    ## add to fonte_de_dados_df response["Fontes_de_Dados"]
-                    fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+ 
+                with st.spinner(gerando):                                
+                    response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                    conta_interacao += 1
+                    
+                    # Verifica se response contem as 'Relatório' na primeira interação
+                    if Uma and 'Relatorio' in response:
+                        Uma = False
+                        response_info = response['Relatorio']
+                        response_tables = response['Tabelas_do_Relatorio']
+
+                    # Verifica se response contem as Fontes_de_Dados
+                    if 'Fontes_de_Dados' in response:
+                        ## add to fonte_de_dados_df response["Fontes_de_Dados"]
+                        fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
 
             for text in dados_relatorio_PBI_medidas:
-                response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS)
 
-                # Verifica se response contem as 'Relatório' na primeira interação
-                if Uma and 'Relatorio' in response:
-                    Uma = False
-                    response_info = response['Relatorio']
-                    response_tables = response['Tabelas_do_Relatorio']
+                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+ 
+                with st.spinner(gerando):                                
+                    response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                    conta_interacao += 1
+                    
+                    # Verifica se response contem as 'Relatório' na primeira interação
+                    if Uma and 'Relatorio' in response:
+                        Uma = False
+                        response_info = response['Relatorio']
+                        response_tables = response['Tabelas_do_Relatorio']
 
-                if 'Medidas_do_Relatorio'  in response:
-                    ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
-                    medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+                    if 'Medidas_do_Relatorio'  in response:
+                        ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
+                        medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
             
             # define the response data for the document            
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
@@ -313,12 +360,13 @@ def main():
         
     configure_app()
             
-    global API_KEY, MODELO, MAX_TOKENS
+    global API_KEY, MODELO, MAX_TOKENS, MAX_TOKENS_SAIDA
 
-    app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens = sidebar_inputs()
+    app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens, max_tokens_saida = sidebar_inputs()
     
     MODELO = modelo
     MAX_TOKENS = max_tokens
+    MAX_TOKENS_SAIDA = max_tokens_saida
             
     if app_id and tenant_id and secret_value:
         headers = get_token(app_id, tenant_id, secret_value)
