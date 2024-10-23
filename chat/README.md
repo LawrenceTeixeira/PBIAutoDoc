@@ -105,4 +105,4 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull re
 
 ## Contato
 
-Para mais informações, entre em contato pelo link: [Contato](https://lawrence.eti.br/contact/)
+Para mais informações, por favor, entre em contato pelo link: [Contato](https://lawrence.eti.br/contact/)
