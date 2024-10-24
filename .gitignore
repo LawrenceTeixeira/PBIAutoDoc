@@ -8,7 +8,7 @@
 .idea
 Report/
 DAXQueries/
-Temp/
+temp/
 
 # Ignore the environment folder
 .venv/
