@@ -76,6 +76,7 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
         # Set a slider to select max tokens
         max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=16384, value=8192, step=512)
 
+        "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
              
