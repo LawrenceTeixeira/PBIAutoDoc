@@ -34,7 +34,7 @@ def configure_app():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    st.header('Documentador de Power BI')
+    st.header('Documentador de Power BI - Minhas Planilhas')
     st.write("""
     Este aplicativo facilita a organização, o acompanhamento e a análise de dados, fornecendo uma documentação completa e automatizada dos relatórios de Power BI. 
     Ideal para administradores e analistas que buscam eficiência e precisão na geração de documentações detalhadas e formatadas.
@@ -47,7 +47,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-3.5-turbo','gpt-4o', 'azure/gpt-4o','claude-3-5-sonnet-20240620', 'gemini/gemini-1.5-pro-002', 'groq/llama-3.2-90b-text-preview'))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-4o'))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
@@ -76,7 +76,6 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
         # Set a slider to select max tokens
         max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=16384, value=8192, step=512)
 
-        "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
              

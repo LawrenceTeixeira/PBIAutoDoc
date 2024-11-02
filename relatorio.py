@@ -201,7 +201,11 @@ def upload_file(uploaded_files):
 
                             df_columns = pd.concat([df_columns, col_data], ignore_index=True)
 
-                    mcode = [''.join(rows['partitions'][0]['source']['expression'])]
+                    # Safeguard against missing keys
+                    if 'partitions' in rows and len(rows['partitions']) > 0 and 'source' in rows['partitions'][0] and 'expression' in rows['partitions'][0]['source']:
+                        mcode = [''.join(rows['partitions'][0]['source']['expression'])]
+                    else:
+                        mcode = ['N/A']  # or use another default value if 'expression' is not found
                     
                     if datasetid_content is not None:
                         df_tables_rows = pd.DataFrame([{
