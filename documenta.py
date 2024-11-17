@@ -202,7 +202,7 @@ def Documenta(prompt, text, modelo, max_tokens=4096, max_tokens_saida=4096):
         {"role": "user", "content": f"{prompt}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"}
     ]
     
-    print('Usando o modelo:', modelo, 'Máximo de tokens de sída:', max_tokens_saida)
+    print('Usando o modelo:', modelo, 'Máximo de tokens de saída:', max_tokens_saida)
     
     response = client_chat_LiteLLM(modelo, messages, max_tokens_saida)
         
@@ -644,7 +644,6 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
         document_texts_medidas.append(
 
             f"""
-
                   Relatório: {report_name}
 
                   Tabelas:
@@ -660,7 +659,6 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
         document_texts_fontes.append(
 
             f"""
-
                   Relatório: {report_name}
 
                   Fontes dos dados das tabelas:

@@ -255,6 +255,24 @@ def buttons_download(df):
             
             Uma = True
 
+            for text in dados_relatorio_PBI_medidas:
+
+                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+ 
+                with st.spinner(gerando):                                
+                    response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                    conta_interacao += 1
+                    
+                    # Verifica se response contem as 'Relatório' na primeira interação
+                    if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                        Uma = False
+                        response_info = response['Relatorio']
+                        response_tables = response['Tabelas_do_Relatorio']
+
+                    if 'Medidas_do_Relatorio'  in response:
+                        ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
+                        medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+            
             # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             for text in dados_relatorio_PBI_fontes:
 
@@ -265,7 +283,8 @@ def buttons_download(df):
                     conta_interacao += 1
                     
                     # Verifica se response contem as 'Relatório' na primeira interação
-                    if Uma and 'Relatorio' in response:
+                    if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                        print(response)
                         Uma = False
                         response_info = response['Relatorio']
                         response_tables = response['Tabelas_do_Relatorio']
@@ -275,24 +294,6 @@ def buttons_download(df):
                         ## add to fonte_de_dados_df response["Fontes_de_Dados"]
                         fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
 
-            for text in dados_relatorio_PBI_medidas:
-
-                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
- 
-                with st.spinner(gerando):                                
-                    response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
-                    conta_interacao += 1
-                    
-                    # Verifica se response contem as 'Relatório' na primeira interação
-                    if Uma and 'Relatorio' in response:
-                        Uma = False
-                        response_info = response['Relatorio']
-                        response_tables = response['Tabelas_do_Relatorio']
-
-                    if 'Medidas_do_Relatorio'  in response:
-                        ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
-                        medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
-            
             # define the response data for the document            
             response_measures = medidas_do_relatorio_df.to_dict(orient='records')
             response_source = fontes_de_dados_df.to_dict(orient='records')
