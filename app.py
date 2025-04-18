@@ -44,7 +44,7 @@ def sidebar_inputs():
     """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo template do Power BI."""    
     with st.sidebar:
         
-        st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
+        st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
         modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'deepseek/deepseek-chat' ))
