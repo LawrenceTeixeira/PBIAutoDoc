@@ -7,10 +7,100 @@ from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.shared import Pt, Inches, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from datetime import date
+from datetime import date, datetime
 from chunkipy import TextChunker
 
 # Funções de definição dos Prompts para a medida e fontes dos dados
+
+def defined_prompt():
+    """Retorna o prompt para a documentação do relatório do Power BI."""
+    prompt_relatorio = """1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
+2 - Fazer a documentação no formato JSON.
+3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas, medidas e fonte_de_dados.
+4 - Na parte das medidas, você deverá fazer em blocos, das que estiverem sendo solicitadas, mas como continuação do JSON e ao final de todas fechar o JSON igual no exemplo.
+5 - Retorne apenas o JSON, sem o ```JSON no inicio e o ``` no final
+6 - O JSON deve ser retornado com aspas duplas, não simples.
+
+Instruções Específicas:
+
+Relatórios:
+- Título do Relatório
+- Descrição do objetivo do relatório
+- Principais KPIs e métricas apresentadas
+- Público-alvo do relatório
+- Exemplos de uso
+
+Formato de Documentação:
+
+Tabelas do Relatório
+Nome da Tabela | Descrição da Tabela
+
+Medidas do Relatório
+Nome da Medida | Descrição da Medida | Medida DAX
+
+Fontes de Dados
+Nome da Fonte de Dados | Descrição da Fonte | Tabelas Contidas no M | Nome da Tabela
+
+Exemplo do JSON:
+{
+    "Relatorio": {
+        "Titulo": "Análise de Vendas Mensais",
+        "Descricao": "Este relatório fornece uma visão detalhada das vendas mensais por região e produto. Os principais KPIs incluem receita total, unidades vendidas e margem de lucro. O relatório é destinado aos gerentes de vendas regionais e é atualizado semanalmente para refletir os dados mais recentes.",
+        "Principais_KPIs_e_Metricas": [
+            "Receita Total",
+            "Unidades Vendidas",
+            "Margem de Lucro"
+        ],
+        "Publico_Alvo": "Gerentes de Vendas Regionais",
+        "Exemplos_de_Uso": [
+            "Identificação de tendências de vendas por região",
+            "Comparação de desempenho de produtos"
+        ]
+    },
+    "Tabelas_do_Relatorio": [
+        {
+            "Nome": "Vendas",
+            "Descricao": "Tabela que armazena dados de vendas, incluindo ID do produto, quantidade vendida, preço e data da venda."
+        },
+        {
+            "Nome": "Produtos",
+            "Descricao": "Tabela que contém informações detalhadas dos produtos, como nome, categoria e preço unitário."
+        }
+    ],
+    "Medidas_do_Relatorio": [
+        {
+            "Nome": "Receita Total",
+            "Descricao": "Calcula a receita total das vendas somando o preço de venda multiplicado pela quantidade vendida."
+        },
+        {
+            "Nome": "Margem de Lucro",
+            "Descricao": "Calcula a margem de lucro subtraindo o custo do preço de venda."
+        }
+    ],
+    "Fontes_de_Dados": [
+        {
+            "Nome": "SQL Server - Vendas",
+            "Descricao": "Base de dados contendo todas as transações de vendas da empresa.",
+            "Tabelas_Contidas_no_M": [
+                "Vendas",
+                "Produtos"
+            ],
+            "NomeTabela": "Vendas"
+        },
+        {
+            "Nome": "Excel - Orçamento",
+            "Descricao": "Planilha contendo dados de orçamento anual por departamento.",
+            "Tabelas_Contidas_no_M": [
+                "Orçamento"
+            ],
+            "NomeTabela": "Orçamento"
+        }
+    ]
+}
+
+Abaixo estão dados do relatório do Power BI a ser documentado:"""
+
+    return prompt_relatorio
 
 def defined_prompt_medidas():
     """Retorna o prompt para a documentação do relatório do Power BI."""
@@ -19,8 +109,9 @@ def defined_prompt_medidas():
 3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas e medidas.
 4 - Na parte das medidas, você deverá fazer em blocos, das que estiverem sendo solicitadas, mas como continuação do JSON e ao final de todas fechar o JSON igual no exemplo.
 5 - Retorne apenas o JSON, sem o ```JSON no inicio e o ``` no final
-6 - O JSON deve ser retornado com aspas duplas, não simples.
-7 - Importante levar em conta que as medidas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
+6 - Retornar somente um texto sem markdown, apenas o JSON como texto puro.
+7 - O JSON deve ser retornado com aspas duplas, não simples.
+8 - Importante levar em conta que as medidas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
 
 Instruções Específicas:
 
@@ -86,8 +177,9 @@ def defined_prompt_fontes():
 2 - Fazer a documentação no formato JSON.
 3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas e fonte_de_dados.
 5 - Retorne apenas o JSON, sem o ```JSON no inicio e o ``` no final
-6 - O JSON deve ser retornado com aspas duplas, não simples.
-7 - Importante levar em conta que as fontes dos dados das tabelas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
+6 - Retornar somente um texto sem markdown, apenas o JSON como texto puro.
+7 - O JSON deve ser retornado com aspas duplas, não simples.
+8 - Importante levar em conta que as fontes dos dados das tabelas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
 
 
 Instruções Específicas:
@@ -164,7 +256,7 @@ def split_by_tag(text):
 def client_chat_LiteLLM(modelo, messages, maxtokens=4096):    
     """Interage com qualquer modelo unsando LiteLLM para obter respostas.
        Mais informações em: https://docs.litellm.ai/docs/providers
-    """
+    """    
     count = 1
     try:
         response = completion(
@@ -173,20 +265,32 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
             max_tokens=maxtokens,
             messages=messages
         )
-        response_content = json.loads( response.choices[0].message.content )
+        
+        model_response = response.choices[0].message.content
+        
+        #remove the ```json and ``` from the response
+        model_response = model_response.replace('```json', '').replace('```', '').replace('```JSON', '')
+        
+        #save the response to a file for debugging wih timestamp
+        #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")                
+        #with open('response_' + timestamp + '_' +  modelo.replace('/', '_') + '.json', 'w', encoding='utf-8') as f:        
+        #    f.write(model_response)
+        
+        response_content = json.loads( model_response )
+
         count += 1
     except Exception as e:
-        print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt4-o da Open AI. {str(e)}. Tentativa:", count)
+        print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt-4.1-nano da Open AI. {str(e)}. Tentativa:", count)
 
         response = completion(
-            model='gpt-4o',
+            model='gpt-4.1-nano',
             temperature=0,
             max_tokens=maxtokens,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
         count += 1
-        print(f"Modelo gpt-4o da Open AI executado com sucesso.")
+        print(f"Modelo gpt-4.1-nano da Open AI executado com sucesso.")
         if count > 10:
             print(f"Erro ao chamar a API {str(e)}")
             raise Exception(f"Erro ao chamar a API {str(e)}")
@@ -666,5 +770,22 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
                   """
             )
 
-
-    return document_texts_medidas, document_texts_fontes, measures_df, tables_df, df_colunas
+    # monta o texto final para o relatório
+    document_text_all = f"""
+        
+    Relatório: {report_name}
+    
+    <Tabelas>
+    {tables_df['NomeTabela'].to_string(index=False)}
+    </Tabelas>
+    
+    <Medidas do Relatório>
+    {measures_df['NomeMedidaExpressao'].to_string(index=False)}
+    </Medidas do Relatório>
+    
+    <Fontes de dados>
+    {tables_df['NomeTabelaFonteDados'].to_string(index=False)}
+    </Fontes de dados>
+    """ 
+    
+    return document_text_all, document_texts_medidas, document_texts_fontes, measures_df, tables_df, df_colunas

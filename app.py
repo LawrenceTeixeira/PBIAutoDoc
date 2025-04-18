@@ -8,7 +8,7 @@ import tiktoken
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
-from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes
+from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes, defined_prompt
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -27,7 +27,7 @@ def counttokens(text):
     return tokens
 
 def configure_app():
-    """Configura a aparência e o layout do aplicativo Streamlit."""
+    """Configura a aparência e o layout do aplicativo Streamlit."""    
     st.set_page_config(
         page_title="AutoDoc",
         page_icon="📊",
@@ -41,13 +41,13 @@ def configure_app():
     """)
 
 def sidebar_inputs():
-    """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo template do Power BI."""
+    """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo template do Power BI."""    
     with st.sidebar:
         
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/06/AutoDoc.png")   
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-4o', 'deepseek/deepseek-chat'))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
@@ -71,19 +71,19 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
             uploaded_files = None  # Nenhum arquivo será necessário            
 
         # Set a slider to select max tokens
-        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=8192, value=4096, step=256)
+        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=10000000, value=8192, step=256)
 
         # Set a slider to select max tokens
-        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=16384, value=8192, step=512)
-
+        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=32768, value=8192, step=512)
+             
         "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
-             
+
     return app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens, max_tokens_saida
 
 def detailed_description():
-    """Mostra uma explicação detalhada sobre o aplicativo."""
+    """Mostra uma explicação detalhada sobre o aplicativo."""    
     st.write("""
     **Documentador de Power BI** é uma ferramenta desenvolvida para simplificar e automatizar o processo de documentação de relatórios do Power BI. 
     Com este aplicativo, você pode:
@@ -108,8 +108,7 @@ def detailed_description():
     """)
 
 def sidebar_description():
-    """Mostra uma descrição resumida com botão para mais informações na barra lateral."""
-    
+    """Mostra uma descrição resumida com botão para mais informações na barra lateral."""    
     st.sidebar.header("Sobre o App")
     if st.sidebar.button("Informações"):
         st.session_state.show_description = not st.session_state.get('show_description', False)
@@ -118,8 +117,7 @@ def sidebar_description():
         detailed_description()
                 
 def main_content(headers=None, uploaded_files=None):
-    """Exibe as informações principais do aplicativo."""
-    
+    """Exibe as informações principais do aplicativo."""    
     st.session_state['df_relationships'] = None
 
     if uploaded_files:
@@ -133,9 +131,7 @@ def main_content(headers=None, uploaded_files=None):
         else:
             st.error("Erro ao processar o arquivo enviado. Por favor, verifique o formato do arquivo.")
 
-    if headers:
-        
-        
+    if headers:        
         workspace_dict = get_workspaces_id(headers)
         
         if workspace_dict:
@@ -147,7 +143,7 @@ def main_content(headers=None, uploaded_files=None):
                     display_reports(scan_response)
 
 def display_reports(scan_response):
-    """Exibe os painéis e lida com a seleção do usuário."""
+    """Exibe os painéis e lida com a seleção do usuário."""    
     report_names = [report_info['name'] for report_info in scan_response['datasets'] if 'PbixInImportMode' in report_info['contentProviderType'] and 'Usage Metrics Report' not in report_info['name']]
     
     option = st.selectbox("Qual relatório você gostaria de visualizar?", list(report_names), index=None, placeholder='Selecione o relatório...')
@@ -180,7 +176,7 @@ def update_fonte_dados(data, tables_df):
             update_fonte_dados(item, tables_df)  
 
 def buttons_download(df):
-    """Exibe botões para download e visualização dos dados processados."""
+    """Exibe botões para download e visualização dos dados processados."""    
     
     if not df.empty and 'ReportName' in df.columns:
         report_name = df['ReportName'].iloc[0].replace(' ', '_')
@@ -196,43 +192,42 @@ def buttons_download(df):
     if on:
         st.dataframe(df)
         
-    verprompt_medidas = st.checkbox("Mostrar Prompt das medidas")
+    verprompt_completo = st.checkbox("Mostrar Prompt")
 
-    if verprompt_medidas:
-        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+    if verprompt_completo:
+        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         
-        prompt = generate_promt_medidas(dados_relatorio_PBI_medidas[0])
+        prompt = generate_promt_medidas(document_text_all)
 
-        st.text_area("Prompt medidas:", value=prompt, height=300)
-
-    verprompt_fontes = st.checkbox("Mostrar Prompt das fontes de dados")
-
-    if verprompt_fontes:
-        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
-        
-        prompt = generate_promt_fontes(dados_relatorio_PBI_fontes[0])
-
-        st.text_area("Prompt fontes de dados:", value=prompt, height=300)
+        st.text_area("Prompt:", value=prompt, height=300)
 
     mostra_total_tokens = st.checkbox("Mostrar total de tokens por interação")
 
     if mostra_total_tokens:
-        dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         
         total_tokens = 0
         stringmostra = ""
         conta_interacao= 0
-        
-        for text in dados_relatorio_PBI_medidas:
+                
+        if counttokens(document_text_all) < MAX_TOKENS:
+
             conta_interacao += 1
-            total_tokens += counttokens(text)
-                        
-            stringmostra += f"{conta_interacao}ª interação (prompt das medidas)      | qtde tokens: {counttokens(text):,}\n"
+            total_tokens += counttokens(document_text_all)
+            stringmostra += f"1ª interação (prompt do relatório)      | qtde tokens: {counttokens(document_text_all):,}\n"
         
-        for text in dados_relatorio_PBI_fontes:
-            conta_interacao += 1
-            total_tokens += counttokens(text)
-            stringmostra += f"{conta_interacao}ª interação (prompt fonte de dados) | qtde tokens: {counttokens(text):,}\n"
+        else:
+                
+            for text in dados_relatorio_PBI_medidas:
+                conta_interacao += 1
+                total_tokens += counttokens(text)
+                            
+                stringmostra += f"{conta_interacao}ª interação (prompt das medidas)      | qtde tokens: {counttokens(text):,}\n"
+            
+            for text in dados_relatorio_PBI_fontes:
+                conta_interacao += 1
+                total_tokens += counttokens(text)
+                stringmostra += f"{conta_interacao}ª interação (prompt fonte de dados) | qtde tokens: {counttokens(text):,}\n"
 
         stringmostra += f"\nTotal de interações: {conta_interacao}\nTotal de tokens (medidas + fontes de dados) de entrada: {total_tokens:,} tokens.\n"
 
@@ -248,55 +243,78 @@ def buttons_download(df):
             # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
             
             # define the prompts for measures and sources            
-            dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
 
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
             
             Uma = True
 
-            for text in dados_relatorio_PBI_medidas:
+            # Initialize response_info and response_tables to avoid UnboundLocalError
+            response_info = {}
+            response_tables = []
 
-                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
- 
-                with st.spinner(gerando):                                
-                    response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
-                    conta_interacao += 1
-                    
-                    # Verifica se response contem as 'Relatório' na primeira interação
-                    if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
-                        Uma = False
-                        response_info = response['Relatorio']
-                        response_tables = response['Tabelas_do_Relatorio']
+            if counttokens(document_text_all) < MAX_TOKENS:
+                # Se o prompt do relatório couber no limite de tokens, não precisa fazer a interação com o modelo
+                response = Documenta(defined_prompt(), document_text_all, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                conta_interacao += 1
+                
+                # Verifica se response contem as 'Relatório' na primeira interação
+                if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                    Uma = False
+                    response_info = response['Relatorio']
+                    response_tables = response['Tabelas_do_Relatorio']
+                
+                response_measures = response['Medidas_do_Relatorio']
+                response_source = response['Fontes_de_Dados']
+                                    
+            else:
+                # Se o prompt do relatório não couber no limite de tokens, faz a interação com o modelo
+                # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
+                for text in dados_relatorio_PBI_medidas:
 
-                    if 'Medidas_do_Relatorio'  in response:
-                        ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
-                        medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
-            
-            # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
-            for text in dados_relatorio_PBI_fontes:
+                    gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+    
+                    with st.spinner(gerando):                                
 
-                gerando = f"{conta_interacao}ª interação, por favor aguarde..."
- 
-                with st.spinner(gerando):                                
-                    response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
-                    conta_interacao += 1
-                    
-                    # Verifica se response contem as 'Relatório' na primeira interação
-                    if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
-                        print(response)
-                        Uma = False
-                        response_info = response['Relatorio']
-                        response_tables = response['Tabelas_do_Relatorio']
+                        response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        conta_interacao += 1
+                        
+                        # Verifica se response contem as 'Relatório' na primeira interação
+                        if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                            Uma = False
+                            response_info = response['Relatorio']
+                            response_tables = response['Tabelas_do_Relatorio']
 
-                    # Verifica se response contem as Fontes_de_Dados
-                    if 'Fontes_de_Dados' in response:
-                        ## add to fonte_de_dados_df response["Fontes_de_Dados"]
-                        fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+                        if 'Medidas_do_Relatorio'  in response:
+                            ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
+                            medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+                
+                # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
+                for text in dados_relatorio_PBI_fontes:
 
-            # define the response data for the document            
-            response_measures = medidas_do_relatorio_df.to_dict(orient='records')
-            response_source = fontes_de_dados_df.to_dict(orient='records')
+                    gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+    
+                    with st.spinner(gerando):                                
+
+                        response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        conta_interacao += 1
+                        
+                        # Verifica se response contem as 'Relatório' na primeira interação
+                        if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                            print(response)
+                            Uma = False
+                            response_info = response['Relatorio']
+                            response_tables = response['Tabelas_do_Relatorio']
+
+                        # Verifica se response contem as Fontes_de_Dados
+                        if 'Fontes_de_Dados' in response:
+                            ## add to fonte_de_dados_df response["Fontes_de_Dados"]
+                            fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+        
+                # define the response data for the document            
+                response_measures = medidas_do_relatorio_df.to_dict(orient='records')
+                response_source = fontes_de_dados_df.to_dict(orient='records')
                         
             # Update the 'FonteDados' field in the response 
             update_fonte_dados(response_source, tables_df)
@@ -357,8 +375,7 @@ def buttons_download(df):
 
         
 def main():    
-    """Função principal do aplicativo, onde todas as funções são chamadas."""
-        
+    """Função principal do aplicativo, onde todas as funções são chamadas."""        
     configure_app()
             
     global API_KEY, MODELO, MAX_TOKENS, MAX_TOKENS_SAIDA

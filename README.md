@@ -115,7 +115,7 @@ Pata utilização de  outros modelos vá para este link: [LiteLLM Providers](htt
 6. Execute o aplicativo:
 
 ```sh
-streamlit run app.py
+streamlit run app.py --server.fileWatcherType none
 ```
 
 ## Fazer o deploy do app no Fly.io
