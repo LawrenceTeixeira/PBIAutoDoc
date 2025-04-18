@@ -194,7 +194,7 @@ def Chat(modelo, messages):
         response = completion(
             model=modelo,
             temperature=0,
-            max_tokens=4096,
+            max_tokens=1000000,
             messages=messages
         )
         response = response.choices[0].message.content
@@ -234,7 +234,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2024/09/Chat.png")   
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4o-mini','gpt-3.5-turbo','gpt-4o', 'azure/gpt-4o','claude-3-5-sonnet-20240620', 'gemini/gemini-1.5-pro-002', 'groq/llama-3.2-90b-text-preview'))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
