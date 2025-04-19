@@ -103,7 +103,7 @@ def detailed_description():
 
     Simplifique e automatize a documentação dos seus relatórios do Power BI com o **Documentador de Power BI**.
     
-    Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/) em 22/06/2024.
+    Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/) em 19/04/2025.
        
     """)
 
