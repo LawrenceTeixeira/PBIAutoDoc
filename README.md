@@ -1,6 +1,6 @@
-# AutoDoc
+# AutoDoc 2025
 
-![AutoDoc 2025](./images/AutoDoc.png)
+![AutoDoc](./images/AutoDoc.png)
 
 AutoDoc é uma ferramenta que simplifica e automatiza a documentação de relatórios do Power BI, ideal para administradores e analistas que buscam eficiência e precisão.
 
