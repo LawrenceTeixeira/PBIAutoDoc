@@ -1,20 +1,28 @@
 # AutoDoc
 
-![AutoDoc](./images/AutoDoc.png)
+![AutoDoc 2025](./images/AutoDoc.png)
 
-AutoDoc é uma ferramenta desenvolvida para simplificar e automatizar o processo de documentação de relatórios do Power BI. Ideal para administradores e analistas que buscam eficiência e precisão na geração de documentações detalhadas e formatadas.
+AutoDoc é uma ferramenta que simplifica e automatiza a documentação de relatórios do Power BI, ideal para administradores e analistas que buscam eficiência e precisão.
 
-## Funcionalidades
+---
 
-- **Carregar Arquivos de Modelo Power BI**: Faça upload de seus arquivos de modelo (.pbit ou .zip) diretamente no aplicativo.
-- **Gerar Documentação Detalhada**: Obtenha documentos completos em formatos Excel e Word, com informações sobre tabelas, colunas, medidas e fontes de dados.
-- **Visualização Interativa**: Veja as tabelas e dados detalhados diretamente na interface do aplicativo antes de fazer o download.
-- **Eficiência e Precisão**: Automatize o processo de documentação, economizando tempo e garantindo a precisão das informações.
+## Recursos
 
-## Execute o AutoDoc
-Para executar o Autodoc click neste link: [AutoDoc - Documentador de Power BI](https://autodocpbi.fly.dev/)
+- **Upload de Modelos Power BI**: Suporte a arquivos `.pbit` e `.zip`.
+- **Documentação Detalhada**: Geração automática em Excel e Word, incluindo tabelas, colunas, medidas e fontes de dados.
+- **Visualização Interativa**: Visualize dados antes do download.
+- **Automação e Precisão**: Processo rápido, confiável e padronizado.
 
-## Workflow
+---
+
+## Acesse o AutoDoc Online
+
+[AutoDoc - Documentador de Power BI](https://autodocpbi.fly.dev/)
+
+---
+
+## Fluxo de Trabalho
+
 ```mermaid
 graph TD
     A[Início] --> B{Escolha o modelo LLM}
@@ -23,34 +31,26 @@ graph TD
     B -->|Anthropic Claude 3.5 Sonnet| E[Anthropic Claude 3.5 Sonnet selecionado]
     B -->|Google Gemini 1.5 Pro| F[Google Gemini 1.5 Pro selecionado]
     B -->|Llama 3.1 70B| G[Llama 3.1 70B selecionado]
-    
     C --> H{Escolha a ação inicial}
     D --> H
     E --> H
     F --> H
     G --> H
-    
     H -->|Opção 1| I[Fazer upload do arquivo de modelo Power BI]
     H -->|Opção 2| J[Preencher informações na barra lateral]
-    
     I --> K{Tipo de arquivo}
     K -->|.pbit| L[Processar arquivo .pbit]
     K -->|.zip| M[Processar arquivo .zip]
-    
     J --> N[App ID]
     J --> O[Tenant ID]
     J --> P[Secret Value]
-    
     L --> Q[Preencher informações na barra lateral]
     M --> Q
-    
     N --> R[Fazer upload do arquivo de modelo Power BI]
     O --> R
     P --> R
-    
     Q --> S[Gerar documentação detalhada]
     R --> S
-    
     S --> T[Visualização interativa dos dados]
     T --> U{Escolher formato de saída}
     U -->|Excel| V[Gerar documento Excel]
@@ -60,115 +60,115 @@ graph TD
     X --> Y[Fim]
 ```
 
-## Como Usar o AutoDoc
+---
 
-1. Preencha as informações do App ID, Tenant ID e Secret Value na barra lateral.
-2. Faça o upload do arquivo de modelo Power BI (.pbit ou .zip).
-3. Visualize os dados e faça o download da documentação gerada em formatos Excel ou Word.
+## Como Usar
 
-## Instalação
+1. Preencha App ID, Tenant ID e Secret Value na barra lateral.
+2. Faça upload do arquivo `.pbit` ou `.zip`.
+3. Visualize os dados e baixe a documentação em Excel ou Word.
 
-Para instalar e rodar o AutoDoc localmente, siga os passos abaixo:
+---
 
-1. Clone o repositório:
+## Instalação Local
 
-```sh
-git clone https://github.com/LawrenceTeixeira/PBIAutoDoc.git
-```
+1. **Clone o repositório:**
+    ```sh
+    git clone https://github.com/LawrenceTeixeira/PBIAutoDoc.git
+    cd AutoDoc
+    ```
 
-2. Navegue até o diretório do projeto:
+2. **Crie e ative o ambiente virtual:**
+    ```sh
+    python -m venv .venv
+    # Windows
+    .venv\Scripts\activate
+    # macOS/Linux
+    source .venv/bin/activate
+    ```
 
-```sh
-cd AutoDoc
-```
+3. **Instale as dependências:**
+    ```sh
+    pip install -r requirements.txt
+    pip install --no-cache-dir chunkipy
+    ```
 
-3. Crie um ambiente virtual e ative-o:
+4. **Configure as variáveis de ambiente (`.env`):**
+    ```env
+    OPENAI_API_KEY=your_openai_api_key
+    GROQ_API_KEY=your_groq_api_key
+    AZURE_API_KEY=your_azure_api_key
+    AZURE_API_BASE=your_endpoint # Exemplo: https://<your alias>.openai.azure.com
+    AZURE_API_VERSION=your_version # Exemplo: 2024-02-15-preview
+    GEMINI_API_KEY=your_gemini_api_key
+    ANTHROPIC_API_KEY=your_anthropic_api_key
+    ```
+    Consulte outros provedores: [LiteLLM Providers](https://docs.litellm.ai/docs/providers)
 
-```sh
-python -m venv .venv
-# No Windows
-.venv\Scripts\activate
-# No macOS/Linux
-source .venv/bin/activate
-```
+5. **Execute o aplicativo:**
+    ```sh
+    streamlit run app.py --server.fileWatcherType none
+    ```
 
-4. Instale as dependências:
+---
 
-```sh
-pip install -r requirements.txt
-pip install --no-cache-dir chunkipy
-```
+## Deploy no Fly.io
 
-5. Crie um arquivo `.env` com as variáveis de ambiente necessárias:
-
-```env
-OPENAI_API_KEY=your_openai_api_key
-GROQ_API_KEY=your_groq_api_key
-AZURE_API_KEY=your_azure_api_key
-AZURE_API_BASE=your_endpoint #Example: "https://<your alias>.openai.azure.com"
-AZURE_API_VERSION=your_version #Example: 2024-02-15-preview
-GEMINI_API_KEY=your_gemini_api_key
-ANTHROPIC_API_KEY=your_anthropic_api_key
-```
-Pata utilização de  outros modelos vá para este link: [LiteLLM Providers](https://docs.litellm.ai/docs/providers)
-
-6. Execute o aplicativo:
-
-```sh
-streamlit run app.py --server.fileWatcherType none
-```
-
-## Fazer o deploy do app no Fly.io
 ```sh
 flyctl launch
 flyctl deploy
 ```
 
-## Fazer fazer o login e logout no Fly
+### Login/Logout no Fly.io
+
 ```sh
 flyctl auth login
 flyctl auth logout
 ```
 
-## Instalar o fly manualmente
+### Instalação manual do Fly.io
+
 ```sh
 curl -L https://fly.io/install.sh | sh
 export PATH=/home/codespace/.fly/bin
 ```
 
-## Pré Requisitos
+---
 
-- Computador com Windows e acesso a internet
-- Python 3.9 ou superior
-- Acesso à internet
-- API com créditos na conta
+## Pré-requisitos
 
-## Sobre o Aplicativo
-
-AutoDoc é projetado para administradores e analistas de dados que precisam de uma forma eficiente e precisa de gerar documentações de alta qualidade para seus relatórios do Power BI. A ferramenta utiliza tecnologias avançadas de processamento de dados e inteligência artificial para fornecer documentações claras, detalhadas e formatadas de acordo com suas necessidades.
-
-### Como usar o AutoDoc:
-
-1. **Carregar Arquivos**: Faça upload dos seus arquivos de modelo Power BI.
-2. **Gerar Documentação**: Obtenha documentos completos em Excel e Word.
-3. **Visualização Interativa**: Veja as tabelas e dados detalhados na interface do aplicativo.
-
-## Contribuição
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests para melhorar o AutoDoc.
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
-
-## Author
-- LinkedIn: [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)
-- Blog: [Lawrence's Blog](https://lawrence.eti.br) - Siga meu blog para mais projetos e atualizaçõies.
-
-## Contato
-
-Para mais informações, entre em contato pelo link:[Contato](https://lawrence.eti.br/contact/)
+- Windows, macOS ou Linux
+- Python 3.10+
+- Internet
+- Open AI API Key válida
 
 ---
 
-Simplifique e automatize a documentação dos seus relatórios do Power BI com o **AutoDoc**.
+## Sobre
+
+AutoDoc é voltado para administradores e analistas de dados que precisam gerar documentação de alta qualidade para relatórios Power BI, utilizando IA para clareza e detalhamento.
+
+---
+
+## Contribuição
+
+Contribuições são bem-vindas! Abra issues ou pull requests para sugerir melhorias.
+
+---
+
+## Licença
+
+MIT. Veja [LICENSE](LICENSE.md).
+
+---
+
+## Autor
+
+- [Lawrence Teixeira - LinkedIn](https://www.linkedin.com/in/lawrenceteixeira/)
+- [Lawrence's Blog](https://lawrence.eti.br)
+
+Contato: [Formulário](https://lawrence.eti.br/contact/)
+
+---
+
+> Simplifique e automatize a documentação dos seus relatórios do Power BI com o **AutoDoc**.
