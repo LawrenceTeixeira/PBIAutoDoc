@@ -1,24 +1,19 @@
 # 1) Base image
 FROM python:3.13.3-slim
 
-# 2) Create a non-root user (optional)
-RUN useradd --create-home appuser
-WORKDIR /home/appuser/app
+# switch working directory
+WORKDIR /app
 
-# 3) Copy and install dependencies
-COPY requirements.txt ./
-# Include chunkipy in requirements.txt, or install here:
+COPY requirements.txt /app/
+
+# install the dependencies and packages in the requirements file
 RUN pip install --no-cache-dir -r requirements.txt
+
 RUN pip install --no-cache-dir chunkipy
 
-# 4) Copy the rest of your code
-COPY . .
+COPY . /app
 
-# 5) Expose Streamlit’s port
 EXPOSE 8501
-
-# 6) Switch to non-root user (optional)
-#USER appuser
 
 # 7) Launch your app
 ENTRYPOINT ["streamlit", "run", "app.py", \
