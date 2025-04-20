@@ -8,7 +8,7 @@ import tiktoken
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
-from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes, defined_prompt
+from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes, defined_prompt, generate_promt
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -195,7 +195,7 @@ def buttons_download(df):
     verprompt_completo = st.checkbox("Mostrar Prompt")
     if verprompt_completo:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
-        prompt = generate_promt_medidas(document_text_all)
+        prompt = generate_promt(document_text_all)
         st.text_area("Prompt:", value=prompt, height=300)
 
     mostra_total_tokens = st.checkbox("Mostrar total de tokens por interação")
@@ -290,18 +290,19 @@ def buttons_download(df):
         # --- Chat interface ---
         # Prepare chat prompt from the report
         document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)
+                
         chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>"""
         if 'chat_messages' not in st.session_state:
             st.session_state['chat_messages'] = [
                 {"role": "system", "content": chat_prompt},
-                {"role": "assistant", "content": f"Oi! 😊 Pergunte qualquer coisa sobre o seu relatório '{report_name}'."}
+                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório {report_name} carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX e relacionamentos."}
             ]
         st.markdown("<hr>", unsafe_allow_html=True)
         st.subheader("Chat")
         for msg in st.session_state['chat_messages']:
             if msg["role"] != "system":
                 st.chat_message(msg["role"]).write(msg["content"])
-        user_input = st.chat_input("Digite sua pergunta para o modelo...")
+        user_input = st.chat_input("Faça a sua pergunta...")
         if user_input:
             st.session_state['chat_messages'].append({"role": "user", "content": user_input})
             st.chat_message("user").write(user_input)

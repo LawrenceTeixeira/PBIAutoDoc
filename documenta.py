@@ -495,6 +495,12 @@ def generate_promt_fontes(text):
     
     return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
 
+def generate_promt(text):
+        
+        prompts = defined_prompt().strip()
+        
+        return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
+
 from docx.shared import Inches
 
 def add_colunas_table(doc, df_colunas):
