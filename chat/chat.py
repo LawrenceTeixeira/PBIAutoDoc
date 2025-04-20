@@ -194,7 +194,7 @@ def Chat(modelo, messages):
         response = completion(
             model=modelo,
             temperature=0,
-            max_tokens=1000000,
+            max_tokens=8192,
             messages=messages
         )
         response = response.choices[0].message.content
