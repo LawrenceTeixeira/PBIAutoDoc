@@ -34,7 +34,7 @@ def configure_app():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    st.header('Documentador de Power BI - Minhas Planilhas')
+    st.header('Documentador de Power BI - Minhas Planilhas - 2025')
     st.write("""
     Este aplicativo facilita a organização, o acompanhamento e a análise de dados, fornecendo uma documentação completa e automatizada dos relatórios de Power BI. 
     Ideal para administradores e analistas que buscam eficiência e precisão na geração de documentações detalhadas e formatadas.
