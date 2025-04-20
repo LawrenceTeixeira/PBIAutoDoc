@@ -290,12 +290,32 @@ def buttons_download(df):
         # --- Chat interface ---
         # Prepare chat prompt from the report
         document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)
-                
-        chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>"""
+
+        # Adiciona colunas ao contexto
+        df_colunas = st.session_state.get('df_colunas')
+        if df_colunas is not None and not df_colunas.empty:
+            colunas_texto = '\n'.join([
+                f"Tabela: {row['NomeTabela']} | Coluna: {row['NomeColuna']} | Tipo: {row['TipoDadoColuna']} | TipoColuna: {row['TipoColuna']} | Expressão: {row['ExpressaoColuna']}"
+                for _, row in df_colunas.iterrows()
+            ])
+        else:
+            colunas_texto = 'Nenhuma coluna encontrada.'
+
+        # Adiciona relacionamentos ao contexto
+        df_relationships = st.session_state.get('df_relationships')
+        if df_relationships is not None and not df_relationships.empty:
+            relacionamentos_texto = '\n'.join([
+                f"De: {row['FromTable']}.{row['FromColumn']} -> Para: {row['ToTable']}.{row['ToColumn']}"
+                for _, row in df_relationships.iterrows()
+            ])
+        else:
+            relacionamentos_texto = 'Nenhum relacionamento encontrado.'
+
+        chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>\n\n<COLUNAS DO RELATORIO>\n{colunas_texto}\n</COLUNAS DO RELATORIO>\n\n<RELACIONAMENTOS DO RELATORIO>\n{relacionamentos_texto}\n</RELACIONAMENTOS DO RELATORIO>"""
         if 'chat_messages' not in st.session_state:
             st.session_state['chat_messages'] = [
                 {"role": "system", "content": chat_prompt},
-                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório {report_name} carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX e relacionamentos."}
+                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório {report_name} carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX, colunas e relacionamentos."}
             ]
         st.markdown("<hr>", unsafe_allow_html=True)
         st.subheader("Chat")
@@ -321,6 +341,7 @@ def buttons_download(df):
             msg = {"role": "assistant", "content": result}
             st.session_state['chat_messages'].append(msg)
             st.chat_message("assistant").write(result)
+
         st.button("⬅️ Voltar", on_click=lambda: st.session_state.update({'show_chat': False, 'doc_gerada': True}))
 
     # Exibe as opções somente se a documentação foi gerada e o chat não está ativo
