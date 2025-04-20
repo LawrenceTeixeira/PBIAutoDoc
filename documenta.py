@@ -368,7 +368,7 @@ def add_measure_table(doc, measures, measures_df):
         style_table_header(cell)
     
     # Adjust column widths
-    widths = [Inches(1.5), Inches(3.0), Inches(2.5)]  # Set appropriate widths for columns
+    widths = [Inches(1.5), Inches(6.0), Inches(2.5)]  # Set appropriate widths for columns
     for i, width in enumerate(widths):
         set_column_width(table.columns[i], width)
     
@@ -450,7 +450,7 @@ def add_data_sources_table(doc, response_source):
         style_table_header(cell)
     
     # Adjust column widths
-    widths = [Inches(2.0), Inches(3.0), Inches(2.0)]  # Set appropriate widths for columns
+    widths = [Inches(2.0), Inches(4.0), Inches(2.0), Inches(2.0)]  # Set appropriate widths for columns
     for i, width in enumerate(widths):
         set_column_width(table.columns[i], width)
 
@@ -579,7 +579,7 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     run.add_picture(r'images/Logo.png', width=Inches(1.0))
     
     # Add centered title
-    add_centered_title(doc, "AutoDoc - Documentador de Power BI")
+    add_centered_title(doc, "AutoDoc 2025 - Documentador de Power BI")
         
     # Title and Description
     set_heading(doc, 'Relatório:', level=1)
@@ -588,7 +588,7 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     # Data
     set_heading(doc, 'Data:', level=1)
     today = date.today()
-    doc.add_paragraph(today.strftime("%d/%m/%Y"), style='Body Text')
+    doc.add_paragraph(today.strftime("%d/%m/%Y %H:%M:%S"), style='Body Text')
     
     set_heading(doc, 'Descrição:', level=1)
     doc.add_paragraph(response_info["Descricao"], style='Body Text')
