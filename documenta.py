@@ -587,7 +587,7 @@ def generate_docx(response_info, response_tables, response_measures, response_so
 
     # Data
     set_heading(doc, 'Data:', level=1)
-    today = date.today()
+    today = datetime.now()
     doc.add_paragraph(today.strftime("%d/%m/%Y %H:%M:%S"), style='Body Text')
     
     set_heading(doc, 'Descrição:', level=1)
