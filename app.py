@@ -74,9 +74,8 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
         max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=10000000, value=8192, step=256)
 
         # Set a slider to select max tokens
-        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=32768, value=8192, step=512)
-             
-        "💬 Converse com o modelo: 🔗[Chat](https://autodocchat.fly.dev)"
+        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=32768, value=8192, step=512)             
+        
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
 
@@ -177,201 +176,187 @@ def update_fonte_dados(data, tables_df):
 
 def buttons_download(df):
     """Exibe botões para download e visualização dos dados processados."""    
-    
     if not df.empty and 'ReportName' in df.columns:
         report_name = df['ReportName'].iloc[0].replace(' ', '_')
     else:
-        # Handle the case where the DataFrame is empty or the column doesn't exist
         report_name = "PBIReport"
-    
+
     if 'button' not in st.session_state:
         st.session_state.button = True
-    
-    on = st.checkbox("Ver dados do relatório")
+    if 'show_chat' not in st.session_state:
+        st.session_state.show_chat = False
+    if 'doc_gerada' not in st.session_state:
+        st.session_state['doc_gerada'] = False
 
+    on = st.checkbox("Ver dados do relatório")
     if on:
         st.dataframe(df)
-        
-    verprompt_completo = st.checkbox("Mostrar Prompt")
 
+    verprompt_completo = st.checkbox("Mostrar Prompt")
     if verprompt_completo:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
-        
         prompt = generate_promt_medidas(document_text_all)
-
         st.text_area("Prompt:", value=prompt, height=300)
 
     mostra_total_tokens = st.checkbox("Mostrar total de tokens por interação")
-
     if mostra_total_tokens:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
-        
         total_tokens = 0
         stringmostra = ""
         conta_interacao= 0
-                
         if counttokens(document_text_all) < MAX_TOKENS:
-
             conta_interacao += 1
             total_tokens += counttokens(document_text_all)
             stringmostra += f"1ª interação (prompt do relatório)      | qtde tokens: {counttokens(document_text_all):,}\n"
-        
         else:
-                
             for text in dados_relatorio_PBI_medidas:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
-                            
                 stringmostra += f"{conta_interacao}ª interação (prompt das medidas)      | qtde tokens: {counttokens(text):,}\n"
-            
             for text in dados_relatorio_PBI_fontes:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
                 stringmostra += f"{conta_interacao}ª interação (prompt fonte de dados) | qtde tokens: {counttokens(text):,}\n"
-
         stringmostra += f"\nTotal de interações: {conta_interacao}\nTotal de tokens (medidas + fontes de dados) de entrada: {total_tokens:,} tokens.\n"
-
         st.text_area("Total de Tokens por interação:", value=stringmostra, height=300)
-        
-    if st.button("Gerar documentação"):
-        conta_interacao = 1
-        
-        # Mostrando uma mensgem de carregamento
-        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com máximo {MAX_TOKENS} tokens de entrada e {MAX_TOKENS_SAIDA} tokens de saída."
-                
-        with st.spinner(gerando):
-            # Executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
-            
-            # define the prompts for measures and sources            
-            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
 
+    colA, colB = st.columns(2)
+    with colA:
+        gerar_doc = st.button("📝 Gerar documentação", disabled=st.session_state.get('show_chat', False))
+    with colB:
+        conversar = st.button("💬 Chat", disabled=st.session_state.get('show_chat', False))
+
+    if gerar_doc and not st.session_state.get('show_chat', False):
+        conta_interacao = 1
+        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com máximo {MAX_TOKENS} tokens de entrada e {MAX_TOKENS_SAIDA} tokens de saída."
+        with st.spinner(gerando):
+            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
-            
             Uma = True
-
-            # Initialize response_info and response_tables to avoid UnboundLocalError
             response_info = {}
             response_tables = []
-
             if counttokens(document_text_all) < MAX_TOKENS:
-                # Se o prompt do relatório couber no limite de tokens, não precisa fazer a interação com o modelo
                 response = Documenta(defined_prompt(), document_text_all, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                 conta_interacao += 1
-                
-                # Verifica se response contem as 'Relatório' na primeira interação
                 if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                     Uma = False
                     response_info = response['Relatorio']
                     response_tables = response['Tabelas_do_Relatorio']
-                
                 response_measures = response['Medidas_do_Relatorio']
                 response_source = response['Fontes_de_Dados']
-                                    
             else:
-                # Se o prompt do relatório não couber no limite de tokens, faz a interação com o modelo
-                # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
                 for text in dados_relatorio_PBI_medidas:
-
                     gerando = f"{conta_interacao}ª interação, por favor aguarde..."
-    
-                    with st.spinner(gerando):                                
-
+                    with st.spinner(gerando):
                         response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
-                        
-                        # Verifica se response contem as 'Relatório' na primeira interação
                         if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                             Uma = False
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
-
                         if 'Medidas_do_Relatorio'  in response:
-                            ## add to medidas_do_relatorio_df response["Medidas_do_Relatorio"]
                             medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
-                
-                # executa a função para fazer a documentação a partir do prompt montado com a lista dos dados do relatório
                 for text in dados_relatorio_PBI_fontes:
-
                     gerando = f"{conta_interacao}ª interação, por favor aguarde..."
-    
-                    with st.spinner(gerando):                                
-
+                    with st.spinner(gerando):
                         response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
-                        
-                        # Verifica se response contem as 'Relatório' na primeira interação
                         if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                             print(response)
                             Uma = False
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
-
-                        # Verifica se response contem as Fontes_de_Dados
                         if 'Fontes_de_Dados' in response:
-                            ## add to fonte_de_dados_df response["Fontes_de_Dados"]
                             fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
-        
-                # define the response data for the document            
                 response_measures = medidas_do_relatorio_df.to_dict(orient='records')
                 response_source = fontes_de_dados_df.to_dict(orient='records')
-                        
-            # Update the 'FonteDados' field in the response 
             update_fonte_dados(response_source, tables_df)
-                                                            
-            # Store the response data in the session state for later use
             st.session_state['response_info'] = response_info
             st.session_state['response_tables'] = response_tables
             st.session_state['response_measures'] = response_measures
             st.session_state['response_source'] = response_source
             st.session_state['measures_df'] = measures_df
             st.session_state['df_colunas'] = df_colunas
-
             st.session_state.button = False
-    
-    verprompt = st.checkbox("Mostrar JSONs", key='mostrar_json', disabled=st.session_state.button )
+            st.session_state['doc_gerada'] = True  # <-- Seta flag após gerar documentação
+        st.session_state.show_chat = False
 
-    if verprompt:
-        # Convert dictionaries to JSON strings
-        response_info_str = json.dumps(st.session_state['response_info'], indent=2)
-        response_tables_str = json.dumps(st.session_state['response_tables'], indent=2)
-        response_measures_str = json.dumps(st.session_state['response_measures'], indent=2)
-        response_source_str = json.dumps(st.session_state['response_source'], indent=2)
+    if conversar and not st.session_state.get('show_chat', False):
+        st.session_state.show_chat = True
+        st.session_state['doc_gerada'] = False  # <-- Oculta opções ao entrar no chat
 
-        # Concatenate the JSON strings
-        text = 'JSON com as informações do relatório' + '\n' + response_info_str + '\n\n' + 'JSON com as tabelas do relatório' + '\n' + response_tables_str + '\n\n' + 'JSON com as medidas do relatório' + '\n' + response_measures_str + '\n\n' + 'JSON com as fontes de dados do relatório' + '\n' + response_source_str 
-        
-        st.text_area("JSON", value=text, height=300)
-    
-    col1, col2 = st.columns(2)
-            
-    with col1:
-        
-        if st.button("Exporta documentação para excel", disabled=st.session_state.button):
-            with st.spinner("Gerando arquivo, por favor aguarde..."):
-                buffer = generate_excel(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
-                
-                # Utilize st.download_button para permitir o download direto
-                st.download_button(
-                    label="Baixar xlsx",
-                    data=buffer,
-                    file_name=report_name+'.xlsx',
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-                
-    with col2:
-        if st.button("Exporta documentação para word", disabled=st.session_state.button):
-            with st.spinner("Gerando arquivo, por favor aguarde..."):
-                doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
-                buffer = BytesIO()
-                doc.save(buffer)
-                buffer.seek(0)
-                st.download_button(
-                    label="Baixar docx",
-                    data=buffer,
-                    file_name=report_name+'.docx',
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+    if st.session_state.show_chat:
+        # --- Chat interface ---
+        # Prepare chat prompt from the report
+        document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)
+        chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>"""
+        if 'chat_messages' not in st.session_state:
+            st.session_state['chat_messages'] = [
+                {"role": "system", "content": chat_prompt},
+                {"role": "assistant", "content": f"Oi! 😊 Pergunte qualquer coisa sobre o seu relatório '{report_name}'."}
+            ]
+        st.markdown("<hr>", unsafe_allow_html=True)
+        st.subheader("Chat")
+        for msg in st.session_state['chat_messages']:
+            if msg["role"] != "system":
+                st.chat_message(msg["role"]).write(msg["content"])
+        user_input = st.chat_input("Digite sua pergunta para o modelo...")
+        if user_input:
+            st.session_state['chat_messages'].append({"role": "user", "content": user_input})
+            st.chat_message("user").write(user_input)
+            with st.spinner('Pensando...'):
+                from litellm import completion
+                try:
+                    response = completion(
+                        model=MODELO,
+                        temperature=0,
+                        max_tokens=MAX_TOKENS_SAIDA,
+                        messages=st.session_state['chat_messages']
+                    )
+                    result = response.choices[0].message.content
+                except Exception as e:
+                    result = f"Erro ao chamar o modelo: {str(e)}"
+            msg = {"role": "assistant", "content": result}
+            st.session_state['chat_messages'].append(msg)
+            st.chat_message("assistant").write(result)
+        st.button("⬅️ Voltar", on_click=lambda: st.session_state.update({'show_chat': False, 'doc_gerada': True}))
+
+    # Exibe as opções somente se a documentação foi gerada e o chat não está ativo
+    if st.session_state.get('doc_gerada', False) and not st.session_state.get('show_chat', False):
+        verprompt = st.checkbox("Mostrar JSONs", key='mostrar_json', disabled=st.session_state.button )
+        if verprompt:
+            response_info_str = json.dumps(st.session_state.get('response_info', {}), indent=2)
+            response_tables_str = json.dumps(st.session_state.get('response_tables', {}), indent=2)
+            response_measures_str = json.dumps(st.session_state.get('response_measures', {}), indent=2)
+            response_source_str = json.dumps(st.session_state.get('response_source', {}), indent=2)
+            text = 'JSON com as informações do relatório' + '\n' + response_info_str + '\n\n' + 'JSON com as tabelas do relatório' + '\n' + response_tables_str + '\n\n' + 'JSON com as medidas do relatório' + '\n' + response_measures_str + '\n\n' + 'JSON com as fontes de dados do relatório' + '\n' + response_source_str 
+            st.text_area("JSON", value=text, height=300)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("📥 Exportar documentação para Excel", disabled=st.session_state.button):
+                with st.spinner("Gerando arquivo, por favor aguarde..."):
+                    buffer = generate_excel(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
+                    st.download_button(
+                        label="📥 Baixar xlsx",
+                        data=buffer,
+                        file_name=report_name+'.xlsx',
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+        with col2:
+            if st.button("📄 Exportar documentação para Word", disabled=st.session_state.button):
+                with st.spinner("Gerando arquivo, por favor aguarde..."):
+                    doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
+                    buffer = BytesIO()
+                    doc.save(buffer)
+                    buffer.seek(0)
+                    st.download_button(
+                        label="📄 Baixar docx",
+                        data=buffer,
+                        file_name=report_name+'.docx',
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
 
         
 def main():    
