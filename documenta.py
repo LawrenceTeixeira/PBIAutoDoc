@@ -574,7 +574,7 @@ def add_relationamentos_table(doc, df_relacionamentos):
     # Adicionar bordas à tabela (se necessário)
     add_table_borders(table)
 
-def generate_docx(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas):
+def generate_docx(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas, modelo):
     """Gera um documento Word com a documentação do relatório."""
     doc = Document()
     
@@ -596,6 +596,10 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     today = datetime.now()
     doc.add_paragraph(today.strftime("%d/%m/%Y %H:%M:%S"), style='Body Text')
     
+    #Model
+    set_heading(doc, 'Gerado pelo modelo:', level=1)
+    doc.add_paragraph(modelo, style='Body Text')
+            
     set_heading(doc, 'Descrição:', level=1)
     doc.add_paragraph(response_info["Descricao"], style='Body Text')
     

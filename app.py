@@ -47,7 +47,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
@@ -271,7 +271,9 @@ def buttons_download(df):
                             fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
                 response_measures = medidas_do_relatorio_df.to_dict(orient='records')
                 response_source = fontes_de_dados_df.to_dict(orient='records')
+            
             update_fonte_dados(response_source, tables_df)
+            
             st.session_state['response_info'] = response_info
             st.session_state['response_tables'] = response_tables
             st.session_state['response_measures'] = response_measures
@@ -280,7 +282,8 @@ def buttons_download(df):
             st.session_state['df_colunas'] = df_colunas
             st.session_state.button = False
             st.session_state['doc_gerada'] = True  # <-- Seta flag após gerar documentação
-        st.session_state.show_chat = False
+            st.session_state['modelo'] = MODELO
+            st.session_state.show_chat = False
 
     if conversar and not st.session_state.get('show_chat', False):
         st.session_state.show_chat = True
@@ -369,7 +372,7 @@ def buttons_download(df):
         with col2:
             if st.button("📄 Exportar documentação para Word", disabled=st.session_state.button):
                 with st.spinner("Gerando arquivo, por favor aguarde..."):
-                    doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
+                    doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'], st.session_state['modelo'])
                     buffer = BytesIO()
                     doc.save(buffer)
                     buffer.seek(0)
