@@ -21,16 +21,22 @@ AutoDoc é uma ferramenta que simplifica e automatiza a documentação de relat�
 
 ---
 
+## Funcionalidade de Chat
+
+- **Chat Inteligente sobre o Relatório**: Após gerar ou carregar a documentação, utilize o chat integrado para tirar dúvidas sobre tabelas, medidas DAX, colunas e relacionamentos do seu modelo Power BI. O assistente responde com base nas informações do relatório carregado, fornecendo explicações detalhadas e técnicas.
+
+---
+
 ## Fluxo de Trabalho
 
 ```mermaid
 graph TD
     A[Início] --> B{Escolha o modelo LLM}
-    B -->|OpenAI GPT-4| C[OpenAI GPT-4 selecionado]
+    B -->|OpenAI GPT-4.1 nano| C[OpenAI GPT-4.1 mini]
     B -->|Azure OpenAI GPT-4| D[Azure OpenAI GPT-4 selecionado]
-    B -->|Anthropic Claude 3.5 Sonnet| E[Anthropic Claude 3.5 Sonnet selecionado]
-    B -->|Google Gemini 1.5 Pro| F[Google Gemini 1.5 Pro selecionado]
-    B -->|Llama 3.1 70B| G[Llama 3.1 70B selecionado]
+    B -->|Anthropic Claude 3.7 Sonnet| E[Anthropic Claude 3.7 Sonnet selecionado]
+    B -->|Google Gemini 2.5 Pro| F[Google Gemini 2.5 Pro selecionado]
+    B -->|Llama 4| G[Llama 4 selecionado]
     C --> H{Escolha a ação inicial}
     D --> H
     E --> H
@@ -57,7 +63,8 @@ graph TD
     U -->|Word| W[Gerar documento Word]
     V --> X[Download da documentação]
     W --> X
-    X --> Y[Fim]
+    X --> Z[Utilizar Chat para dúvidas sobre o relatório]
+    Z --> Y[Fim]
 ```
 
 ---
@@ -67,6 +74,7 @@ graph TD
 1. Preencha App ID, Tenant ID e Secret Value na barra lateral.
 2. Faça upload do arquivo `.pbit` ou `.zip`.
 3. Visualize os dados e baixe a documentação em Excel ou Word.
+4. **Acesse o Chat**: Após processar o relatório, clique no botão "💬 Chat" para abrir o chat. Faça perguntas sobre tabelas, medidas, colunas ou relacionamentos do seu modelo Power BI. O assistente responderá com base nos dados carregados.
 
 ---
 
