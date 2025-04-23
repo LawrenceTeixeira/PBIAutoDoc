@@ -33,7 +33,7 @@ AutoDoc é uma ferramenta que simplifica e automatiza a documentação de relat�
 graph TD
     A[Início] --> B{Escolha o modelo LLM}
     B -->|OpenAI GPT-4.1 nano| C[OpenAI GPT-4.1 mini]
-    B -->|Azure OpenAI GPT-4| D[Azure OpenAI GPT-4 selecionado]
+    B -->|Azure OpenAI GPT-41 nano| D[Azure OpenAI GPT-41 nano selecionado]
     B -->|Anthropic Claude 3.7 Sonnet| E[Anthropic Claude 3.7 Sonnet selecionado]
     B -->|Google Gemini 2.5 Pro| F[Google Gemini 2.5 Pro selecionado]
     B -->|Llama 4| G[Llama 4 selecionado]
