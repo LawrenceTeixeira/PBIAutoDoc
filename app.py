@@ -47,7 +47,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano', 'azure/gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
@@ -317,8 +317,8 @@ def buttons_download(df):
         chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>\n\n<COLUNAS DO RELATORIO>\n{colunas_texto}\n</COLUNAS DO RELATORIO>\n\n<RELACIONAMENTOS DO RELATORIO>\n{relacionamentos_texto}\n</RELACIONAMENTOS DO RELATORIO>"""
         if 'chat_messages' not in st.session_state:
             st.session_state['chat_messages'] = [
-                {"role": "system", "content": chat_prompt},
-                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório {report_name} carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX, colunas e relacionamentos."}
+                {"role": "system", "content": chat_prompt+' sempre responder dentro de tabelas e sempre criar as descricções das tabelas, medidas, relacionamentos, colunas e fontes de dados.'},
+                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório '{report_name}' carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX, colunas e relacionamentos."}
             ]
         st.markdown("<hr>", unsafe_allow_html=True)
         st.subheader("Chat")
