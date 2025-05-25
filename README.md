@@ -116,6 +116,7 @@ graph TD
 5. **Execute o aplicativo:**
     ```sh
     streamlit run app.py --server.fileWatcherType none
+    python -X utf8 -m streamlit run app.py --server.fileWatcherType none
     ```
 
 ---
