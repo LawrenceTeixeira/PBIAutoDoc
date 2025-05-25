@@ -74,7 +74,7 @@ Usar o formato .pbit permite que você crie templates reutilizáveis, facilitand
         max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=10000000, value=8192, step=256)
 
         # Set a slider to select max tokens
-        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=32768, value=8192, step=512)             
+        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=128000, value=8192, step=512)             
         
         ""
         "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
