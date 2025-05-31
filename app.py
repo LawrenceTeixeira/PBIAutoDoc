@@ -10,8 +10,14 @@ import tiktoken
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
 from documenta import generate_docx, generate_excel, text_to_document, Documenta, defined_prompt_fontes, defined_prompt_medidas, generate_promt_medidas, generate_promt_fontes, defined_prompt, generate_promt
 
+# Importando o sistema de internacionalização
+from i18n import init_i18n, t, language_selector
+
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
+
+# Initialize internationalization
+init_i18n(default_language="en")
 
 MODELO = ""
 MAX_TOKENS = 0
@@ -34,11 +40,14 @@ def configure_app():
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    st.header('Documentador de Power BI - Minhas Planilhas - 2025')
-    st.write("""
-    Este aplicativo facilita a organização, o acompanhamento e a análise de dados, fornecendo uma documentação completa e automatizada dos relatórios de Power BI. 
-    Ideal para administradores e analistas que buscam eficiência e precisão na geração de documentações detalhadas e formatadas.
-    """)
+    
+    # Language selector at the top
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col3:
+        language_selector("main_language_selector", use_flags=True, flag_style="image")
+    
+    st.header(t('ui.app_title'))
+    st.write(t('ui.app_description'))
 
 def sidebar_inputs():
     """Exibe o menu lateral para inserção das informações do administrador e upload do arquivo template do Power BI."""    
@@ -47,69 +56,76 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox("Selecione o modelo:", ('gpt-4.1-nano', 'azure/gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-nano', 'azure/gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
-        option = st.radio("Selecione a fonte de dados:", ('Power BI Template .pbit', 'Serviço do Power BI'))
+        option = st.radio(t('ui.data_source_selector'), (t('ui.power_bi_template'), t('ui.power_bi_service')))
         
-        if option == 'Power BI Template .pbit':
+        if option == t('ui.power_bi_template'):
             app_id = None
             tenant_id = None
             secret_value = None
-            uploaded_files = st.file_uploader("Apenas arquivo '.pbit' ou '.zip'", accept_multiple_files=False, type=['pbit', 'zip'], help="""
-
-1. **Salvar com a extensão .pbit**: Ao salvar o arquivo, selecione a extensão .pbit na janela de salvamento. Isso garantirá que seu relatório do Power BI seja salvo como um template.
-
-2. **Exportar como Power BI Template**: Outra maneira de salvar seu relatório como um template é através do menu. Vá até o menu superior e selecione `Arquivo > Exportar > Power BI Template`. Isso abrirá uma janela onde você poderá definir o nome do arquivo e outras configurações antes de salvar o template.
-
-Usar o formato .pbit permite que você crie templates reutilizáveis, facilitando a criação de novos relatórios baseados no mesmo modelo.""")
+            uploaded_files = st.file_uploader(
+                t('ui.file_upload_label'), 
+                accept_multiple_files=False, 
+                type=['pbit', 'zip'], 
+                help=t('ui.file_upload_help')
+            )
         else:
-            st.write('Preencha com as informações do App')
-            app_id = st.text_input(label='App ID')
-            tenant_id = st.text_input(label='Tenant ID')
-            secret_value = st.text_input(label='Secret value')
+            app_id = st.text_input(
+                label=t('ui.app_id_label'),
+                help=t('ui.app_id_help')
+            )
+            tenant_id = st.text_input(
+                label=t('ui.tenant_id_label'),
+                help=t('ui.tenant_id_help')
+            )
+            secret_value = st.text_input(
+                label=t('ui.secret_value_label'),
+                help=t('ui.secret_value_help'),
+                type='password'
+            )
             uploaded_files = None  # Nenhum arquivo será necessário            
 
         # Set a slider to select max tokens
-        max_tokens = st.sidebar.number_input('Selecione o máximo de tokens de entrada:', min_value=256, max_value=10000000, value=8192, step=256)
+        max_tokens = st.sidebar.number_input(t('ui.max_tokens_input'), min_value=256, max_value=10000000, value=8192, step=256)
 
         # Set a slider to select max tokens
-        max_tokens_saida = st.sidebar.number_input('Selecione o máximo de tokens de saída:', min_value=512, max_value=128000, value=8192, step=512)             
+        max_tokens_saida = st.sidebar.number_input(t('ui.max_tokens_output'), min_value=512, max_value=128000, value=8192, step=512)             
         
         ""
-        "Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"
+        
+        st.sidebar.markdown(t('ui.created_by', author="[Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/)"))
 
     return app_id, tenant_id, secret_value, uploaded_files, modelo, max_tokens, max_tokens_saida
 
 def detailed_description():
     """Mostra uma explicação detalhada sobre o aplicativo."""    
-    st.write("""
-    **Documentador de Power BI** é uma ferramenta desenvolvida para simplificar e automatizar o processo de documentação de relatórios do Power BI. 
-    Com este aplicativo, você pode:
+    st.write(f"""
+    {t('detailed_description.title')}
+    {t('detailed_description.features')}
     
-    - **Carregar seus arquivos de modelo Power BI (.pbit ou .zip)**: Faça upload dos seus arquivos de modelo diretamente no aplicativo.
-    - **Gerar Documentação Detalhada**: Obtenha documentos completos em formatos Excel e Word, com informações sobre tabelas, colunas, medidas e fontes de dados.
-    - **Visualização Interativa**: Veja as tabelas e dados detalhados diretamente na interface do aplicativo antes de fazer o download.
-    - **Eficiência e Precisão**: Automatize o processo de documentação, economizando tempo e garantindo a precisão das informações.
+    - {t('detailed_description.feature_1')}
+    - {t('detailed_description.feature_2')}
+    - {t('detailed_description.feature_3')}
+    - {t('detailed_description.feature_4')}
 
-    O aplicativo é projetado para administradores e analistas de dados que precisam de uma forma eficiente e precisa de gerar documentações de alta qualidade para seus relatórios do Power BI. 
-    A ferramenta utiliza tecnologias avançadas de processamento de dados e inteligência artificial para fornecer documentações claras, detalhadas e formatadas de acordo com suas necessidades.
+    {t('detailed_description.purpose')}
 
-    **Como usar o Documentador de Power BI**:
-    1. Preencha as informações do App ID, Tenant ID e Secret Value na barra lateral.
-    2. Faça o upload do arquivo de modelo Power BI (.pbit ou .zip).
-    3. Visualize os dados e faça o download da documentação gerada em formatos Excel ou Word.
+    {t('detailed_description.how_to_use')}
+    {t('detailed_description.step_1')}
+    {t('detailed_description.step_2')}
+    {t('detailed_description.step_3')}
 
-    Simplifique e automatize a documentação dos seus relatórios do Power BI com o **Documentador de Power BI**.
+    {t('detailed_description.conclusion')}
     
-    Criado por [Lawrence Teixeira](https://www.linkedin.com/in/lawrenceteixeira/) em 19/04/2025.
-       
+    {t('detailed_description.created_info')}
     """)
 
 def sidebar_description():
     """Mostra uma descrição resumida com botão para mais informações na barra lateral."""    
-    st.sidebar.header("Sobre o App")
-    if st.sidebar.button("Informações"):
+    st.sidebar.header(t('ui.about_app'))
+    if st.sidebar.button(t('ui.information')):
         st.session_state.show_description = not st.session_state.get('show_description', False)
         
     if st.session_state.get('show_description', False):
@@ -120,23 +136,31 @@ def main_content(headers=None, uploaded_files=None):
     st.session_state['df_relationships'] = None
 
     if uploaded_files:
-        df_normalized, df_relationships = upload_file(uploaded_files)
+        with st.spinner(t('messages.processing_file')):
+            df_normalized, df_relationships = upload_file(uploaded_files)
 
         # Store the df_relationships data in the session state for later use
         st.session_state['df_relationships'] = df_relationships
 
         if isinstance(df_normalized, pd.DataFrame):
+            st.success(t('messages.file_processed'))
             buttons_download(df_normalized)
         else:
-            st.error("Erro ao processar o arquivo enviado. Por favor, verifique o formato do arquivo.")
+            st.error(t('errors.processing_error', error=df_normalized))
 
     if headers:        
-        workspace_dict = get_workspaces_id(headers)
+        with st.spinner(t('messages.loading_workspaces')):
+            workspace_dict = get_workspaces_id(headers)
         
         if workspace_dict:
-            option = st.selectbox("Qual workspace você gostaria de visualizar?", list(workspace_dict.keys()), index=None, placeholder='Selecione a workspace...')
+            option = st.selectbox(
+                t('ui.workspace_selector'), 
+                list(workspace_dict.keys()), 
+                index=None, 
+                placeholder=t('ui.workspace_placeholder')
+            )
             if option:
-                with st.spinner('Retornando relatório...'):
+                with st.spinner(t('messages.scanning_workspace')):
                     workspace_id = workspace_dict[option]
                     scan_response = scan_workspace(headers, workspace_id)
                     display_reports(scan_response)
@@ -145,7 +169,12 @@ def display_reports(scan_response):
     """Exibe os painéis e lida com a seleção do usuário."""    
     report_names = [report_info['name'] for report_info in scan_response['datasets'] if 'PbixInImportMode' in report_info['contentProviderType'] and 'Usage Metrics Report' not in report_info['name']]
     
-    option = st.selectbox("Qual relatório você gostaria de visualizar?", list(report_names), index=None, placeholder='Selecione o relatório...')
+    option = st.selectbox(
+        t('ui.report_selector'), 
+        list(report_names), 
+        index=None, 
+        placeholder=t('ui.report_placeholder')
+    )
     
     if option:
         df_desnormalized = clean_reports(scan_response, option)
@@ -188,17 +217,17 @@ def buttons_download(df):
     if 'doc_gerada' not in st.session_state:
         st.session_state['doc_gerada'] = False
 
-    on = st.checkbox("Ver dados do relatório")
+    on = st.checkbox(t('ui.view_report_data'))
     if on:
         st.dataframe(df)
 
-    verprompt_completo = st.checkbox("Mostrar Prompt")
+    verprompt_completo = st.checkbox(t('ui.show_prompt'))
     if verprompt_completo:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         prompt = generate_promt(document_text_all)
         st.text_area("Prompt:", value=prompt, height=300)
 
-    mostra_total_tokens = st.checkbox("Mostrar total de tokens por interação")
+    mostra_total_tokens = st.checkbox(t('ui.show_tokens'))
     if mostra_total_tokens:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         total_tokens = 0
@@ -207,28 +236,28 @@ def buttons_download(df):
         if counttokens(document_text_all) < MAX_TOKENS:
             conta_interacao += 1
             total_tokens += counttokens(document_text_all)
-            stringmostra += f"1ª interação (prompt do relatório)      | qtde tokens: {counttokens(document_text_all):,}\n"
+            stringmostra += f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}\n"
         else:
             for text in dados_relatorio_PBI_medidas:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
-                stringmostra += f"{conta_interacao}ª interação (prompt das medidas)      | qtde tokens: {counttokens(text):,}\n"
+                stringmostra += f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}\n"
             for text in dados_relatorio_PBI_fontes:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
-                stringmostra += f"{conta_interacao}ª interação (prompt fonte de dados) | qtde tokens: {counttokens(text):,}\n"
-        stringmostra += f"\nTotal de interações: {conta_interacao}\nTotal de tokens (medidas + fontes de dados) de entrada: {total_tokens:,} tokens.\n"
-        st.text_area("Total de Tokens por interação:", value=stringmostra, height=300)
+                stringmostra += f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}\n"
+        stringmostra += f"\n{t('ui.total_interactions')} {conta_interacao}\n{t('ui.total_tokens')} {total_tokens:,} tokens.\n"
+        st.text_area(t('ui.token_analysis_label'), value=stringmostra, height=300)
 
     colA, colB = st.columns(2)
     with colA:
-        gerar_doc = st.button("📝 Gerar documentação", disabled=st.session_state.get('show_chat', False))
+        gerar_doc = st.button(t('ui.generate_doc'), disabled=st.session_state.get('show_chat', False))
     with colB:
-        conversar = st.button("💬 Chat", disabled=st.session_state.get('show_chat', False))
+        conversar = st.button(t('ui.chat'), disabled=st.session_state.get('show_chat', False))
 
     if gerar_doc and not st.session_state.get('show_chat', False):
         conta_interacao = 1
-        gerando = f"Gerando documentação usando o modelo {MODELO}, configurado com máximo {MAX_TOKENS} tokens de entrada e {MAX_TOKENS_SAIDA} tokens de saída."
+        gerando = t('messages.generating_documentation')
         with st.spinner(gerando):
             document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
             medidas_do_relatorio_df = pd.DataFrame()
@@ -247,7 +276,7 @@ def buttons_download(df):
                 response_source = response['Fontes_de_Dados']
             else:
                 for text in dados_relatorio_PBI_medidas:
-                    gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+                    gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
                         response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
@@ -258,7 +287,7 @@ def buttons_download(df):
                         if 'Medidas_do_Relatorio'  in response:
                             medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
                 for text in dados_relatorio_PBI_fontes:
-                    gerando = f"{conta_interacao}ª interação, por favor aguarde..."
+                    gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
                         response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
@@ -284,6 +313,7 @@ def buttons_download(df):
             st.session_state['doc_gerada'] = True  # <-- Seta flag após gerar documentação
             st.session_state['modelo'] = MODELO
             st.session_state.show_chat = False
+            st.success(t('messages.documentation_generated'))
 
     if conversar and not st.session_state.get('show_chat', False):
         st.session_state.show_chat = True
@@ -292,9 +322,7 @@ def buttons_download(df):
     if st.session_state.show_chat:
         # --- Chat interface ---
         # Prepare chat prompt from the report
-        document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)
-
-        # Adiciona colunas ao contexto
+        document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)        # Adiciona colunas ao contexto
         df_colunas = st.session_state.get('df_colunas')
         if df_colunas is not None and not df_colunas.empty:
             colunas_texto = '\n'.join([
@@ -302,7 +330,7 @@ def buttons_download(df):
                 for _, row in df_colunas.iterrows()
             ])
         else:
-            colunas_texto = 'Nenhuma coluna encontrada.'
+            colunas_texto = t('chat.no_columns_found')
 
         # Adiciona relacionamentos ao contexto
         df_relationships = st.session_state.get('df_relationships')
@@ -312,24 +340,24 @@ def buttons_download(df):
                 for _, row in df_relationships.iterrows()
             ])
         else:
-            relacionamentos_texto = 'Nenhum relacionamento encontrado.'
+            relacionamentos_texto = t('chat.no_relationships_found')
 
-        chat_prompt = f"""1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\n\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\n<INICIO DADOS RELATORIO POWER BI>\n{document_text_all}\n<FIM DADOS RELATORIO POWER BI>\n\n<COLUNAS DO RELATORIO>\n{colunas_texto}\n</COLUNAS DO RELATORIO>\n\n<RELACIONAMENTOS DO RELATORIO>\n{relacionamentos_texto}\n</RELACIONAMENTOS DO RELATORIO>"""
+        chat_prompt = t('chat.system_prompt', document_text_all=document_text_all, colunas_texto=colunas_texto, relacionamentos_texto=relacionamentos_texto)
         if 'chat_messages' not in st.session_state:
             st.session_state['chat_messages'] = [
-                {"role": "system", "content": chat_prompt+' sempre responder dentro de tabelas e sempre criar as descricções das tabelas, medidas, relacionamentos, colunas e fontes de dados.'},
-                {"role": "assistant", "content": f"Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório '{report_name}' carregado na memôria! Você pode fazer perguntas referentes as tabelas, medidas DAX, colunas e relacionamentos."}
+                {"role": "system", "content": chat_prompt + t('chat.system_instruction')},
+                {"role": "assistant", "content": t('chat.assistant_greeting', report_name=report_name)}
             ]
         st.markdown("<hr>", unsafe_allow_html=True)
-        st.subheader("Chat")
+        st.subheader(t('chat.title'))
         for msg in st.session_state['chat_messages']:
             if msg["role"] != "system":
                 st.chat_message(msg["role"]).write(msg["content"])
-        user_input = st.chat_input("Faça a sua pergunta...")
+        user_input = st.chat_input(t('chat.input_placeholder'))
         if user_input:
             st.session_state['chat_messages'].append({"role": "user", "content": user_input})
             st.chat_message("user").write(user_input)
-            with st.spinner('Pensando...'):
+            with st.spinner(t('chat.processing')):
                 from litellm import completion
                 try:
                     response = completion(
@@ -340,44 +368,42 @@ def buttons_download(df):
                     )
                     result = response.choices[0].message.content
                 except Exception as e:
-                    result = f"Erro ao chamar o modelo: {str(e)}"
+                    result = t('chat.error', error=str(e))
             msg = {"role": "assistant", "content": result}
             st.session_state['chat_messages'].append(msg)
             st.chat_message("assistant").write(result)
 
-        st.button("⬅️ Voltar", on_click=lambda: st.session_state.update({'show_chat': False, 'doc_gerada': True}))
-
-    # Exibe as opções somente se a documentação foi gerada e o chat não está ativo
+        st.button(t('chat.close_chat'), on_click=lambda: st.session_state.update({'show_chat': False, 'doc_gerada': True}))    # Exibe as opções somente se a documentação foi gerada e o chat não está ativo
     if st.session_state.get('doc_gerada', False) and not st.session_state.get('show_chat', False):
-        verprompt = st.checkbox("Mostrar JSONs", key='mostrar_json', disabled=st.session_state.button )
+        verprompt = st.checkbox(t('ui.show_json'), key='mostrar_json', disabled=st.session_state.button )
         if verprompt:
             response_info_str = json.dumps(st.session_state.get('response_info', {}), indent=2)
             response_tables_str = json.dumps(st.session_state.get('response_tables', {}), indent=2)
             response_measures_str = json.dumps(st.session_state.get('response_measures', {}), indent=2)
             response_source_str = json.dumps(st.session_state.get('response_source', {}), indent=2)
-            text = 'JSON com as informações do relatório' + '\n' + response_info_str + '\n\n' + 'JSON com as tabelas do relatório' + '\n' + response_tables_str + '\n\n' + 'JSON com as medidas do relatório' + '\n' + response_measures_str + '\n\n' + 'JSON com as fontes de dados do relatório' + '\n' + response_source_str 
-            st.text_area("JSON", value=text, height=300)
+            text = f"{t('ui.json_report_info')}\n{response_info_str}\n\n{t('ui.json_report_tables')}\n{response_tables_str}\n\n{t('ui.json_report_measures')}\n{response_measures_str}\n\n{t('ui.json_data_sources')}\n{response_source_str}"
+            st.text_area(t('ui.json_area_label'), value=text, height=300)
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("📥 Exportar documentação para Excel", disabled=st.session_state.button):
-                with st.spinner("Gerando arquivo, por favor aguarde..."):
+            if st.button(t('ui.export_excel'), disabled=st.session_state.button):
+                with st.spinner(t('ui.generating_file')):
                     buffer = generate_excel(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'])
                     st.download_button(
-                        label="📥 Baixar xlsx",
+                        label=t('ui.download_excel_file'),
                         data=buffer,
                         file_name=report_name+'.xlsx',
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
         with col2:
-            if st.button("📄 Exportar documentação para Word", disabled=st.session_state.button):
-                with st.spinner("Gerando arquivo, por favor aguarde..."):
+            if st.button(t('ui.export_word'), disabled=st.session_state.button):
+                with st.spinner(t('ui.generating_file')):
                     doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'], st.session_state['modelo'])
                     buffer = BytesIO()
                     doc.save(buffer)
                     buffer.seek(0)
                     st.download_button(
-                        label="📄 Baixar docx",
+                        label=t('ui.download_word_file'),
                         data=buffer,
                         file_name=report_name+'.docx',
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
