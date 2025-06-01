@@ -62,8 +62,20 @@
     "error_loading_file": "Erro ao carregar arquivo: {error}",
     "unsupported_file": "Arquivo não suportado",
     "no_data_available": "Nenhum dado disponível"
-  },
-  "documentation": {
+  },  "documentation": {
+    "app_title": "AutoDoc 2025 - Documentador de Power BI",
+    "report_heading": "Relatório:",
+    "date_heading": "Data:",
+    "generated_by_model_heading": "Gerado pelo modelo:",
+    "description_heading": "Descrição:",
+    "main_kpis_heading": "Principais KPIs e Métricas:",
+    "target_audience_heading": "Público alvo:",
+    "usage_examples_heading": "Exemplos de uso:",
+    "tables_heading": "Tabelas",
+    "measures_heading": "Medidas",
+    "data_sources_heading": "Fonte de dados",
+    "columns_heading": "Colunas",
+    "relationships_heading": "Relacionamentos",
     "report_title": "Título do Relatório",
     "report_description": "Descrição do Relatório",
     "main_kpis": "Principais KPIs e Métricas",

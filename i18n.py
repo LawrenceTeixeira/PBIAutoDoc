@@ -121,6 +121,40 @@ class TranslationManager:
             st.warning(f"Translation formatting error for key '{key}': {e}")
             return translation
     
+    def translate_for_language(self, key: str, language: str, **kwargs) -> str:
+        """
+        Translate a key to a specific language.
+        
+        Args:
+            key: Translation key (supports nested keys with dot notation)
+            language: Language code to translate to
+            **kwargs: Variables for string formatting
+            
+        Returns:
+            Translated string or the key if translation not found
+        """
+        # Try specified language first
+        translation = self._get_nested_value(
+            self.translations.get(language, {}), key
+        )
+        
+        # Fallback to default language if translation not found
+        if translation is None and language != self.default_language:
+            translation = self._get_nested_value(
+                self.translations.get(self.default_language, {}), key
+            )
+        
+        # Return key if no translation found
+        if translation is None:
+            translation = key
+            
+        # Format string with provided variables
+        try:
+            return translation.format(**kwargs) if kwargs else translation
+        except (KeyError, ValueError) as e:
+            # Note: Can't use st.warning here as this might be called outside Streamlit context
+            return translation
+    
     def _get_nested_value(self, data: Dict[str, Any], key: str) -> Optional[str]:
         """
         Get a nested value from dictionary using dot notation.
@@ -358,3 +392,18 @@ def get_current_language() -> str:
 def get_available_languages() -> Dict[str, str]:
     """Get available languages."""
     return get_translation_manager().get_available_languages()
+
+
+def translate_to_language(key: str, language: str, **kwargs) -> str:
+    """
+    Translate a key to a specific language.
+    
+    Args:
+        key: Translation key
+        language: Language code
+        **kwargs: Variables for string formatting
+        
+    Returns:
+        Translated string
+    """
+    return get_translation_manager().translate_for_language(key, language, **kwargs)

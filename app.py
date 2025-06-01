@@ -398,7 +398,7 @@ def buttons_download(df):
         with col2:
             if st.button(t('ui.export_word'), disabled=st.session_state.button):
                 with st.spinner(t('ui.generating_file')):
-                    doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'], st.session_state['modelo'])
+                    doc = generate_docx(st.session_state['response_info'], st.session_state['response_tables'], st.session_state['response_measures'], st.session_state['response_source'], st.session_state['measures_df'], st.session_state['df_relationships'], st.session_state['df_colunas'], st.session_state['modelo'], st.session_state.language)
                     buffer = BytesIO()
                     doc.save(buffer)
                     buffer.seek(0)

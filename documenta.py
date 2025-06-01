@@ -9,6 +9,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from datetime import date, datetime
 from chunkipy import TextChunker
+from i18n import translate_to_language
 
 # Funções de definição dos Prompts para a medida e fontes dos dados
 
@@ -574,7 +575,7 @@ def add_relationamentos_table(doc, df_relacionamentos):
     # Adicionar bordas à tabela (se necessário)
     add_table_borders(table)
 
-def generate_docx(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas, modelo):
+def generate_docx(response_info, response_tables, response_measures, response_source, measures_df, df_relationships, df_colunas, modelo, language="pt-BR"):
     """Gera um documento Word com a documentação do relatório."""
     doc = Document()
     
@@ -582,58 +583,56 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     paragraph = doc.add_paragraph()
     paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     run = paragraph.add_run()
-    run.add_picture(r'images/Logo.png', width=Inches(1.0))
-    
-    # Add centered title
-    add_centered_title(doc, "AutoDoc 2025 - Documentador de Power BI")
+    run.add_picture(r'images/Logo.png', width=Inches(1.0))    # Add centered title
+    add_centered_title(doc, translate_to_language("documentation.app_title", language))
         
     # Title and Description
-    set_heading(doc, 'Relatório:', level=1)
+    set_heading(doc, translate_to_language("documentation.report_heading", language), level=1)
     doc.add_paragraph(response_info["Titulo"], style='Body Text')
 
     # Data
-    set_heading(doc, 'Data:', level=1)
+    set_heading(doc, translate_to_language("documentation.date_heading", language), level=1)
     today = datetime.now()
     doc.add_paragraph(today.strftime("%d/%m/%Y %H:%M:%S"), style='Body Text')
     
     #Model
-    set_heading(doc, 'Gerado pelo modelo:', level=1)
+    set_heading(doc, translate_to_language("documentation.generated_by_model_heading", language), level=1)
     doc.add_paragraph(modelo, style='Body Text')
             
-    set_heading(doc, 'Descrição:', level=1)
+    set_heading(doc, translate_to_language("documentation.description_heading", language), level=1)
     doc.add_paragraph(response_info["Descricao"], style='Body Text')
     
     # Main KPIs and Metrics
-    set_heading(doc, 'Principais KPIs e Métricas:', level=1)
+    set_heading(doc, translate_to_language("documentation.main_kpis_heading", language), level=1)
     add_bullet_list(doc, response_info["Principais_KPIs_e_Metricas"])
     
     # Target Audience
-    set_heading(doc, 'Público alvo:', level=1)
+    set_heading(doc, translate_to_language("documentation.target_audience_heading", language), level=1)
     doc.add_paragraph(response_info["Publico_Alvo"], style='Body Text')
     
     # Use Cases
-    set_heading(doc, 'Exemplos de uso:', level=1)
+    set_heading(doc, translate_to_language("documentation.usage_examples_heading", language), level=1)
     add_bullet_list(doc, response_info["Exemplos_de_Uso"])
     
     # Report Tables
-    set_heading(doc, 'Tabelas', level=1)
+    set_heading(doc, translate_to_language("documentation.tables_heading", language), level=1)
     add_report_tables(doc, response_tables)
     
     # Report Measures
-    set_heading(doc, 'Medidas', level=1)
+    set_heading(doc, translate_to_language("documentation.measures_heading", language), level=1)
     add_measure_table(doc, response_measures, measures_df)
     
     # Data Sources
-    set_heading(doc, 'Fonte de dados', level=1)
+    set_heading(doc, translate_to_language("documentation.data_sources_heading", language), level=1)
     add_data_sources_table(doc, response_source)
 
     # Columns
-    set_heading(doc, 'Colunas', level=1)
+    set_heading(doc, translate_to_language("documentation.columns_heading", language), level=1)
     add_colunas_table(doc, df_colunas)
 
     # Relationships
     if df_relationships is not None:
-        set_heading(doc, 'Relacionamentos', level=1)
+        set_heading(doc, translate_to_language("documentation.relationships_heading", language), level=1)
         add_relationamentos_table(doc, df_relationships)
 
     return doc
