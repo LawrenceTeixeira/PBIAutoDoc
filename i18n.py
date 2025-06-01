@@ -275,14 +275,19 @@ class TranslationManager:
                     clean_name = lang_name.split(' ', 1)[-1] if ' ' in lang_name else lang_name
                     # Standardize button text length for consistent sizing
                     if clean_name == "Portuguese":
-                        clean_name = "Brazil"  # Shorter Portuguese name
+                        clean_name = "BR"  # Shorter Portuguese name
+                    elif clean_name == "Spanish":
+                        clean_name = "ES"  # Shorter Spanish name
+                    elif clean_name == "English":
+                        clean_name = "EN"  # Shorter English name
+                        
                     button_label = f"![flag](data:image/png;base64,{self._get_base64_image(flag_path)}) {clean_name}"
                 else:
                     # Fallback to emoji
                     clean_name = lang_name.split(' ', 1)[-1] if ' ' in lang_name else lang_name
                     # Standardize button text length for consistent sizing
                     if clean_name == "Portuguese":
-                        clean_name = "Português"  # Shorter Portuguese name
+                        clean_name = "BR"  # Shorter Portuguese name
                     button_label = f"{flag_info['flag']} {clean_name}"
                 
                 if st.button(

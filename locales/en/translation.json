@@ -27,7 +27,7 @@
     "report_placeholder": "Select report...",
     "view_report_data": "View report data",
     "show_prompt": "Show Prompt",    "show_tokens": "Show total tokens per interaction",    "generate_doc": "📋 Generate Documentation",
-    "chat": "💬 Chat",
+    "chat": "💬 Chat with your report",
     "download_word": "📄 Download Word",
     "download_excel": "📊 Download Excel",
     "show_json": "Show JSONs",

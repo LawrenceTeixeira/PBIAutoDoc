@@ -56,7 +56,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-nano', 'azure/gpt-4.1-nano','gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio(t('ui.data_source_selector'), (t('ui.power_bi_template'), t('ui.power_bi_service')))
@@ -224,7 +224,7 @@ def buttons_download(df):
     verprompt_completo = st.checkbox(t('ui.show_prompt'))
     if verprompt_completo:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
-        prompt = generate_promt(document_text_all)
+        prompt = generate_promt(document_text_all, t('language_name'))
         st.text_area("Prompt:", value=prompt, height=300)
 
     mostra_total_tokens = st.checkbox(t('ui.show_tokens'))
@@ -266,7 +266,7 @@ def buttons_download(df):
             response_info = {}
             response_tables = []
             if counttokens(document_text_all) < MAX_TOKENS:
-                response = Documenta(defined_prompt(), document_text_all, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                response = Documenta(defined_prompt(t('language_name')), document_text_all, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                 conta_interacao += 1
                 if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                     Uma = False
@@ -278,7 +278,7 @@ def buttons_download(df):
                 for text in dados_relatorio_PBI_medidas:
                     gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
-                        response = Documenta(defined_prompt_medidas(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        response = Documenta(defined_prompt_medidas(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
                         if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                             Uma = False
@@ -289,7 +289,7 @@ def buttons_download(df):
                 for text in dados_relatorio_PBI_fontes:
                     gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
-                        response = Documenta(defined_prompt_fontes(), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        response = Documenta(defined_prompt_fontes(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
                         if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
                             print(response)

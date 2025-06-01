@@ -13,14 +13,14 @@ from i18n import translate_to_language
 
 # Funções de definição dos Prompts para a medida e fontes dos dados
 
-def defined_prompt():
-    """Retorna o prompt para a documentação do relatório do Power BI."""
-    prompt_relatorio = """1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
+def defined_prompt(language_name="🇧🇷 Portuguese"):
+    prompt_relatorio = f"""1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
 2 - Fazer a documentação no formato JSON.
 3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas, medidas e fonte_de_dados.
 4 - Na parte das medidas, você deverá fazer em blocos, das que estiverem sendo solicitadas, mas como continuação do JSON e ao final de todas fechar o JSON igual no exemplo.
 5 - Retorne apenas o JSON, sem o ```JSON no inicio e o ``` no final
 6 - O JSON deve ser retornado com aspas duplas, não simples.
+7 - Traduza todas as descrições para o idioma {language_name}. Não traduza os nomes das tabelas, medidas e fontes de dados, estrutura do JSON, apenas as descrições.
 
 Instruções Específicas:
 
@@ -43,8 +43,8 @@ Fontes de Dados
 Nome da Fonte de Dados | Descrição da Fonte | Tabelas Contidas no M | Nome da Tabela
 
 Exemplo do JSON:
-{
-    "Relatorio": {
+{{
+    "Relatorio": {{
         "Titulo": "Análise de Vendas Mensais",
         "Descricao": "Este relatório fornece uma visão detalhada das vendas mensais por região e produto. Os principais KPIs incluem receita total, unidades vendidas e margem de lucro. O relatório é destinado aos gerentes de vendas regionais e é atualizado semanalmente para refletir os dados mais recentes.",
         "Principais_KPIs_e_Metricas": [
@@ -57,29 +57,29 @@ Exemplo do JSON:
             "Identificação de tendências de vendas por região",
             "Comparação de desempenho de produtos"
         ]
-    },
+    }},
     "Tabelas_do_Relatorio": [
-        {
+        {{
             "Nome": "Vendas",
             "Descricao": "Tabela que armazena dados de vendas, incluindo ID do produto, quantidade vendida, preço e data da venda."
-        },
-        {
+        }},
+        {{
             "Nome": "Produtos",
             "Descricao": "Tabela que contém informações detalhadas dos produtos, como nome, categoria e preço unitário."
-        }
+        }}
     ],
     "Medidas_do_Relatorio": [
-        {
+        {{
             "Nome": "Receita Total",
             "Descricao": "Calcula a receita total das vendas somando o preço de venda multiplicado pela quantidade vendida."
-        },
-        {
+        }},
+        {{
             "Nome": "Margem de Lucro",
             "Descricao": "Calcula a margem de lucro subtraindo o custo do preço de venda."
-        }
+        }}
     ],
     "Fontes_de_Dados": [
-        {
+        {{
             "Nome": "SQL Server - Vendas",
             "Descricao": "Base de dados contendo todas as transações de vendas da empresa.",
             "Tabelas_Contidas_no_M": [
@@ -87,25 +87,25 @@ Exemplo do JSON:
                 "Produtos"
             ],
             "NomeTabela": "Vendas"
-        },
-        {
+        }},
+        {{
             "Nome": "Excel - Orçamento",
             "Descricao": "Planilha contendo dados de orçamento anual por departamento.",
             "Tabelas_Contidas_no_M": [
                 "Orçamento"
             ],
             "NomeTabela": "Orçamento"
-        }
+        }}
     ]
-}
+}}
 
 Abaixo estão dados do relatório do Power BI a ser documentado:"""
 
     return prompt_relatorio
 
-def defined_prompt_medidas():
-    """Retorna o prompt para a documentação do relatório do Power BI."""
-    prompt_relatorio = """1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
+def defined_prompt_medidas(language_name="🇧🇷 Portuguese"):
+    """Retorna o prompt para a documentação do relatório do Power BI (medidas)."""
+    prompt_relatorio = f"""1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
 2 - Fazer a documentação no formato JSON.
 3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas e medidas.
 4 - Na parte das medidas, você deverá fazer em blocos, das que estiverem sendo solicitadas, mas como continuação do JSON e ao final de todas fechar o JSON igual no exemplo.
@@ -113,6 +113,7 @@ def defined_prompt_medidas():
 6 - Retornar somente um texto sem markdown, apenas o JSON como texto puro.
 7 - O JSON deve ser retornado com aspas duplas, não simples.
 8 - Importante levar em conta que as medidas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
+9 - Traduza todas as descrições para o idioma {language_name}. Não traduza os nomes das tabelas, medidas e fontes de dados, estrutura do JSON, apenas as descrições.
 
 Instruções Específicas:
 
@@ -132,8 +133,8 @@ Medidas do Relatório
 Nome da Medida | Descrição da Medida | Medida DAX
 
 Exemplo do JSON:
-{
-    "Relatorio": {
+{{
+    "Relatorio": {{
         "Titulo": "Análise de Vendas Mensais",
         "Descricao": "Este relatório fornece uma visão detalhada das vendas mensais por região e produto. Os principais KPIs incluem receita total, unidades vendidas e margem de lucro. O relatório é destinado aos gerentes de vendas regionais e é atualizado semanalmente para refletir os dados mais recentes.",
         "Principais_KPIs_e_Metricas": [
@@ -146,42 +147,43 @@ Exemplo do JSON:
             "Identificação de tendências de vendas por região",
             "Comparação de desempenho de produtos"
         ]
-    },
+    }},
     "Tabelas_do_Relatorio": [
-        {
+        {{
             "Nome": "Vendas",
             "Descricao": "Tabela que armazena dados de vendas, incluindo ID do produto, quantidade vendida, preço e data da venda."
-        },
-        {
+        }},
+        {{
             "Nome": "Produtos",
             "Descricao": "Tabela que contém informações detalhadas dos produtos, como nome, categoria e preço unitário."
-        }
+        }}
     ],
     "Medidas_do_Relatorio": [
-        {
+        {{
             "Nome": "Receita Total",
             "Descricao": "Calcula a receita total das vendas somando o preço de venda multiplicado pela quantidade vendida."
-        },
-        {
+        }},
+        {{
             "Nome": "Margem de Lucro",
             "Descricao": "Calcula a margem de lucro subtraindo o custo do preço de venda."
-        }
-    ],
-}
+        }}
+    ]
+}}
 
 Abaixo estão dados do relatório do Power BI a ser documentado:"""
     return prompt_relatorio
 
-def defined_prompt_fontes():
-    """Retorna o prompt para a documentação do relatório do Power BI."""
-    prompt_relatorio = """1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
+
+def defined_prompt_fontes(language_name="🇧🇷 Portuguese"):
+    """Retorna o prompt para a documentação do relatório do Power BI (fontes de dados)."""
+    prompt_relatorio = f"""1 - Você é um documentador especializado em Power BI. Sua função é criar documentações claras e detalhadas para os relatórios, tabelas, medidas e fontes de dados em Power BI. Para cada item, você deve incluir uma descrição compreensiva que ajude os usuários a entenderem sua finalidade e uso no contexto do relatório. Utilize uma linguagem técnica e precisa, mas acessível para usuários com diferentes níveis de conhecimento em Power BI.
 2 - Fazer a documentação no formato JSON.
 3 - Você deverá dividir em diferentes outputs de acordo com a entrada do usuário, separando em: info_paineis, tabelas e fonte_de_dados.
 5 - Retorne apenas o JSON, sem o ```JSON no inicio e o ``` no final
 6 - Retornar somente um texto sem markdown, apenas o JSON como texto puro.
 7 - O JSON deve ser retornado com aspas duplas, não simples.
 8 - Importante levar em conta que as fontes dos dados das tabelas do relatório podem ser enviadas por partes de acordo com o limite de tokens do modelo.
-
+9 - Traduza todas as descrições para o idioma {language_name}. Não traduza os nomes das tabelas, medidas e fontes de dados, estrutura do JSON, apenas as descrições.
 
 Instruções Específicas:
 
@@ -201,8 +203,8 @@ Fontes de Dados
 Nome da Fonte de Dados | Descrição da Fonte | Tabelas Contidas no M | Nome da Tabela
 
 Exemplo do JSON:
-{
-    "Relatorio": {
+{{
+    "Relatorio": {{
         "Titulo": "Análise de Vendas Mensais",
         "Descricao": "Este relatório fornece uma visão detalhada das vendas mensais por região e produto. Os principais KPIs incluem receita total, unidades vendidas e margem de lucro. O relatório é destinado aos gerentes de vendas regionais e é atualizado semanalmente para refletir os dados mais recentes.",
         "Principais_KPIs_e_Metricas": [
@@ -215,19 +217,19 @@ Exemplo do JSON:
             "Identificação de tendências de vendas por região",
             "Comparação de desempenho de produtos"
         ]
-    },
+    }},
     "Tabelas_do_Relatorio": [
-        {
+        {{
             "Nome": "Vendas",
             "Descricao": "Tabela que armazena dados de vendas, incluindo ID do produto, quantidade vendida, preço e data da venda."
-        },
-        {
+        }},
+        {{
             "Nome": "Produtos",
             "Descricao": "Tabela que contém informações detalhadas dos produtos, como nome, categoria e preço unitário."
-        }
+        }}
     ],
     "Fontes_de_Dados": [
-        {
+        {{
             "Nome": "SQL Server - Vendas",
             "Descricao": "Base de dados contendo todas as transações de vendas da empresa.",
             "Tabelas_Contidas_no_M": [
@@ -235,17 +237,17 @@ Exemplo do JSON:
                 "Produtos"
             ],
             "NomeTabela": "Vendas"
-        },
-        {
+        }},
+        {{
             "Nome": "Excel - Orçamento",
             "Descricao": "Planilha contendo dados de orçamento anual por departamento.",
             "Tabelas_Contidas_no_M": [
                 "Orçamento"
             ],
             "NomeTabela": "Orçamento"
-        }
+        }}
     ]
-}
+}}
 
 Abaixo estão dados do relatório do Power BI a ser documentado:"""
     return prompt_relatorio
@@ -484,21 +486,21 @@ def add_centered_title(doc, title, color=RGBColor(0, 0, 128)):
     run.font.size = Pt(20)
     run.font.color.rgb = color
 
-def generate_promt_medidas(text):
+def generate_promt_medidas(text, language_name="🇧🇷 Portuguese"):
     
-    prompts = defined_prompt_medidas().strip()
-    
-    return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
-
-def generate_promt_fontes(text):
-    
-    prompts = defined_prompt_fontes().strip()
+    prompts = defined_prompt_medidas(language_name).strip()
     
     return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
 
-def generate_promt(text):
+def generate_promt_fontes(text, language_name="🇧🇷 Portuguese"):
+    
+    prompts = defined_prompt_fontes(language_name).strip()
+    
+    return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
+
+def generate_promt(text, language_name="🇧🇷 Portuguese"):
         
-        prompts = defined_prompt().strip()
+        prompts = defined_prompt(language_name).strip()
         
         return f"{prompts}\n<INICIO DADOS RELATORIO POWER BI>\n{text}\n<FIM DADOS RELATORIO POWER BI>"
 

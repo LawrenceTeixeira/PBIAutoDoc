@@ -28,7 +28,7 @@
     "view_report_data": "Ver datos del informe",
     "show_prompt": "Mostrar Prompt",
     "show_tokens": "Mostrar total de tokens por interacción",    "generate_doc": "📋 Generar Documentación",
-    "chat": "💬 Chat",
+    "chat": "💬 Chat con su informe",
     "download_word": "📄 Descargar Word",
     "download_excel": "📊 Descargar Excel",
     "show_json": "Mostrar JSONs",
