@@ -96,13 +96,28 @@
     "column_name": "Nome da Coluna",
     "column_type": "Tipo da Coluna",
     "data_type": "Tipo de Dados",
-    "column_expression": "Expressão da Coluna",
-    "relationships": "Relacionamentos",
+    "column_expression": "Expressão da Coluna",    "relationships": "Relacionamentos",
     "relationship_name": "Nome do Relacionamento",
     "from_table": "Tabela de Origem",
     "from_column": "Coluna de Origem",
     "to_table": "Tabela de Destino",
-    "to_column": "Coluna de Destino"
+    "to_column": "Coluna de Destino",
+    "table_headers": {
+      "name": "Nome",
+      "description": "Descrição",
+      "dax_formula": "Fórmula DAX",
+      "table": "Tabela",
+      "contained_tables_m": "Tabelas contidas no M",
+      "m_code": "Código M",
+      "column": "Coluna",
+      "type": "Tipo",
+      "calculated_or_data": "Calculada ou Dados",
+      "expression": "Expressão",
+      "from_table": "De tabela",
+      "from_column": "De coluna",
+      "to_table": "Para tabela",
+      "to_column": "Para coluna"
+    }
   },
   "detailed_description": {
     "title": "**Documentador de Power BI** é uma ferramenta desenvolvida para simplificar e automatizar o processo de documentação de relatórios do Power BI.",

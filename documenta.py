@@ -359,12 +359,12 @@ def style_table_header(cell):
         for run in paragraph.runs:
             run.font.color.rgb = RGBColor(255, 255, 255)  # White text
 
-def add_measure_table(doc, measures, measures_df):
+def add_measure_table(doc, measures, measures_df, language="pt-BR"):
     table = doc.add_table(rows=1, cols=3)
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'Nome'
-    hdr_cells[1].text = 'Descrição'
-    hdr_cells[2].text = 'Fórmula DAX'
+    hdr_cells[0].text = translate_to_language('documentation.table_headers.name', language)
+    hdr_cells[1].text = translate_to_language('documentation.table_headers.description', language)
+    hdr_cells[2].text = translate_to_language('documentation.table_headers.dax_formula', language)
     
     # Style header cells
     for cell in hdr_cells:
@@ -406,11 +406,11 @@ def add_measure_table(doc, measures, measures_df):
     
     add_table_borders(table)
 
-def add_report_tables(doc, response_tables):
+def add_report_tables(doc, response_tables, language="pt-BR"):
     table = doc.add_table(rows=1, cols=2)
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'Tabela'
-    hdr_cells[1].text = 'Descrição'
+    hdr_cells[0].text = translate_to_language('documentation.table_headers.table', language)
+    hdr_cells[1].text = translate_to_language('documentation.table_headers.description', language)
     
     # Style header cells
     for cell in hdr_cells:
@@ -440,13 +440,13 @@ def add_report_tables(doc, response_tables):
     
     add_table_borders(table)
 
-def add_data_sources_table(doc, response_source):
+def add_data_sources_table(doc, response_source, language="pt-BR"):
     table = doc.add_table(rows=1, cols=4)
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'Nome'
-    hdr_cells[1].text = 'Descrição'
-    hdr_cells[2].text = 'Tabelas contidas no M'
-    hdr_cells[3].text = 'Código M'
+    hdr_cells[0].text = translate_to_language('documentation.table_headers.name', language)
+    hdr_cells[1].text = translate_to_language('documentation.table_headers.description', language)
+    hdr_cells[2].text = translate_to_language('documentation.table_headers.contained_tables_m', language)
+    hdr_cells[3].text = translate_to_language('documentation.table_headers.m_code', language)
     
     # Style header cells
     for cell in hdr_cells:
@@ -506,14 +506,14 @@ def generate_promt(text, language_name="🇧🇷 Portuguese"):
 
 from docx.shared import Inches
 
-def add_colunas_table(doc, df_colunas):
+def add_colunas_table(doc, df_colunas, language="pt-BR"):
     table = doc.add_table(rows=1, cols=5)
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'Tabela'
-    hdr_cells[1].text = 'Coluna'
-    hdr_cells[2].text = 'Tipo'
-    hdr_cells[3].text = 'Calculada ou Dados'
-    hdr_cells[4].text = 'Expressão'
+    hdr_cells[0].text = translate_to_language('documentation.table_headers.table', language)
+    hdr_cells[1].text = translate_to_language('documentation.table_headers.column', language)
+    hdr_cells[2].text = translate_to_language('documentation.table_headers.type', language)
+    hdr_cells[3].text = translate_to_language('documentation.table_headers.calculated_or_data', language)
+    hdr_cells[4].text = translate_to_language('documentation.table_headers.expression', language)
     
     # Style header cells
     for cell in hdr_cells:
@@ -540,16 +540,16 @@ def add_colunas_table(doc, df_colunas):
     
     add_table_borders(table)
 
-def add_relationamentos_table(doc, df_relacionamentos):
+def add_relationamentos_table(doc, df_relacionamentos, language="pt-BR"):
     # Criar a tabela com 4 colunas
     table = doc.add_table(rows=1, cols=4)
     
     # Definir os cabeçalhos da tabela
     hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'De tabela'
-    hdr_cells[1].text = 'De coluna'
-    hdr_cells[2].text = 'Para tabela'
-    hdr_cells[3].text = 'Para coluna'
+    hdr_cells[0].text = translate_to_language('documentation.table_headers.from_table', language)
+    hdr_cells[1].text = translate_to_language('documentation.table_headers.from_column', language)
+    hdr_cells[2].text = translate_to_language('documentation.table_headers.to_table', language)
+    hdr_cells[3].text = translate_to_language('documentation.table_headers.to_column', language)
     
     # Estilizar as células do cabeçalho (se necessário)
     for cell in hdr_cells:
@@ -615,27 +615,26 @@ def generate_docx(response_info, response_tables, response_measures, response_so
     # Use Cases
     set_heading(doc, translate_to_language("documentation.usage_examples_heading", language), level=1)
     add_bullet_list(doc, response_info["Exemplos_de_Uso"])
-    
-    # Report Tables
+      # Report Tables
     set_heading(doc, translate_to_language("documentation.tables_heading", language), level=1)
-    add_report_tables(doc, response_tables)
+    add_report_tables(doc, response_tables, language)
     
     # Report Measures
     set_heading(doc, translate_to_language("documentation.measures_heading", language), level=1)
-    add_measure_table(doc, response_measures, measures_df)
+    add_measure_table(doc, response_measures, measures_df, language)
     
     # Data Sources
     set_heading(doc, translate_to_language("documentation.data_sources_heading", language), level=1)
-    add_data_sources_table(doc, response_source)
+    add_data_sources_table(doc, response_source, language)
 
     # Columns
     set_heading(doc, translate_to_language("documentation.columns_heading", language), level=1)
-    add_colunas_table(doc, df_colunas)
+    add_colunas_table(doc, df_colunas, language)
 
     # Relationships
     if df_relationships is not None:
         set_heading(doc, translate_to_language("documentation.relationships_heading", language), level=1)
-        add_relationamentos_table(doc, df_relationships)
+        add_relationamentos_table(doc, df_relationships, language)
 
     return doc
 

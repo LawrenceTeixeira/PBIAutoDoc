@@ -96,13 +96,28 @@
     "column_name": "Column Name",
     "column_type": "Column Type",
     "data_type": "Data Type",
-    "column_expression": "Column Expression",
-    "relationships": "Relationships",
+    "column_expression": "Column Expression",    "relationships": "Relationships",
     "relationship_name": "Relationship Name",
     "from_table": "From Table",
     "from_column": "From Column",
     "to_table": "To Table",
-    "to_column": "To Column"
+    "to_column": "To Column",
+    "table_headers": {
+      "name": "Name",
+      "description": "Description",
+      "dax_formula": "DAX Formula",
+      "table": "Table",
+      "contained_tables_m": "Tables contained in M",
+      "m_code": "M Code",
+      "column": "Column",
+      "type": "Type",
+      "calculated_or_data": "Calculated or Data",
+      "expression": "Expression",
+      "from_table": "From table",
+      "from_column": "From column",
+      "to_table": "To table",
+      "to_column": "To column"
+    }
   },
   "detailed_description": {
     "title": "**Power BI Documenter** is a tool developed to simplify and automate the Power BI report documentation process.",
