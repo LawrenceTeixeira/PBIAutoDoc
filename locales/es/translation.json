@@ -146,7 +146,7 @@
     "no_columns_found": "No se encontraron columnas.",
     "no_relationships_found": "No se encontraron relaciones.",
     "system_prompt": "1 - Eres un experto en analizar modelos de informes de Power BI. Tu función es responder de manera clara y detallada a cualquier pregunta que haga el usuario.\\n2 - La información del informe está contenida a continuación entre las etiquetas: <INICIO DATOS INFORME POWER BI> y <FIN DATOS INFORME POWER BI>.\\n3 - Tus respuestas deben restringirse a la información contenida en el informe de Power BI.\\n\\nA continuación está la información del informe de Power BI que se usará como base para responder las preguntas del usuario:\\n<INICIO DATOS INFORME POWER BI>\\n{document_text_all}\\n<FIN DATOS INFORME POWER BI>\\n\\n<COLUMNAS DEL INFORME>\\n{colunas_texto}\\n</COLUMNAS DEL INFORME>\\n\\n<RELACIONES DEL INFORME>\\n{relacionamentos_texto}\\n</RELACIONES DEL INFORME>",
-    "system_instruction": " siempre responde dentro de tablas y siempre crea descripciones de tablas, medidas, relaciones, columnas y fuentes de datos.",
+    "system_instruction": " Siempre responde en el formato de tablas y siempre crea descripciones de tablas, medidas, relaciones, columnas y fuentes de datos. Las respuestas del chat deben estar en español. No traduzcas para el español los nombres de las tablas, medidas o fuentes de datos.",
     "assistant_greeting": "¡Hola! 😊 ¿Cómo estás? Aquí está tu asistente AutoDoc. ¡Tengo tu informe '{report_name}' cargado en memoria! Puedes hacer preguntas sobre tablas, medidas DAX, columnas y relaciones."
   },
   "errors": {

@@ -144,7 +144,7 @@
     "no_columns_found": "No columns found.",
     "no_relationships_found": "No relationships found.",
     "system_prompt": "1 - You are an expert in analyzing Power BI report models. Your function is to respond clearly and in detail to any question asked by the user.\\n2 - The report information is contained below between the tags: <START POWER BI REPORT DATA> and <END POWER BI REPORT DATA>.\\n3 - Your responses must be restricted to the information contained in the Power BI report.\\n\\nBelow is the Power BI report information to be used as a basis for answering user questions:\\n<START POWER BI REPORT DATA>\\n{document_text_all}\\n<END POWER BI REPORT DATA>\\n\\n<REPORT COLUMNS>\\n{colunas_texto}\\n</REPORT COLUMNS>\\n\\n<REPORT RELATIONSHIPS>\\n{relacionamentos_texto}\\n</REPORT RELATIONSHIPS>",
-    "system_instruction": " always respond within tables and always create descriptions of tables, measures, relationships, columns and data sources.",
+    "system_instruction": " Always respond with table format and always create descriptions of tables, measures, relationships, columns and data sources. The chat responses must be in English. Do not translate to English the names of tables, measures, or data sources.",
     "assistant_greeting": "Hi! 😊 How are you? Here is your AutoDoc assistant. I have your report '{report_name}' loaded in memory! You can ask questions about tables, DAX measures, columns and relationships."
   },
   "errors": {

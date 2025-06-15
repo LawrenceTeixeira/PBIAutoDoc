@@ -56,7 +56,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-mini', 'gpt-4.1', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-mini', 'gpt-4.1', 'azure/gpt-4.1-mini', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio(t('ui.data_source_selector'), (t('ui.power_bi_template'), t('ui.power_bi_service')))

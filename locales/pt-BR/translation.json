@@ -144,7 +144,7 @@
     "no_columns_found": "Nenhuma coluna encontrada.",
     "no_relationships_found": "Nenhum relacionamento encontrado.",
     "system_prompt": "1 - Você é um especialista em analisar modelos de relatório do Power BI. Sua função é responder de forma clara e detalhada qualquer pergunta feita pelo usuário.\\n2 - As informações do relatório estão contidas abaixo entre as tags: <INICIO DADOS RELATORIO POWER BI> e <FIM DADOS RELATORIO POWER BI>.\\n3 - As suas respostas precisam ser restritas às informações contidas no relatório do Power BI.\\n\\nAbaixo estão as informações do relatório do Power BI para ser usado como base para responder as perguntas do usuário:\\n<INICIO DADOS RELATORIO POWER BI>\\n{document_text_all}\\n<FIM DADOS RELATORIO POWER BI>\\n\\n<COLUNAS DO RELATORIO>\\n{colunas_texto}\\n</COLUNAS DO RELATORIO>\\n\\n<RELACIONAMENTOS DO RELATORIO>\\n{relacionamentos_texto}\\n</RELACIONAMENTOS DO RELATORIO>",
-    "system_instruction": " sempre responder dentro de tabelas e sempre criar as descricções das tabelas, medidas, relacionamentos, colunas e fontes de dados.",
+    "system_instruction": " Sempre responder no formato de tabelas e sempre criar as descricções das tabelas, medidas, relacionamentos, colunas e fontes de dados. As repostas do chat precisam ser no idioma Português do Brasil. Não traduza para o Português do Brasil os nomes das tabelas, medidas ou fontes de dados.",
     "assistant_greeting": "Oi! 😊 Tudo bem? Aqui é o seu assistente do AutoDoc. Estou com o seu relatório '{report_name}' carregado na memória! Você pode fazer perguntas referentes as tabelas, medidas DAX, colunas e relacionamentos."
   },
   "errors": {
