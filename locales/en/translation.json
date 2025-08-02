@@ -28,6 +28,8 @@
     "view_report_data": "View report data",
     "show_prompt": "Show Prompt",    "show_tokens": "Show total tokens per interaction",    "generate_doc": "📋 Generate Documentation",
     "chat": "💬 Chat with your report",
+    "github_button_text": "View on GitHub",
+    "github_aria_label": "View repository on GitHub",
     "download_word": "📄 Download Word",
     "download_excel": "📊 Download Excel",
     "show_json": "Show JSONs",

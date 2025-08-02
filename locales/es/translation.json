@@ -29,6 +29,8 @@
     "show_prompt": "Mostrar Prompt",
     "show_tokens": "Mostrar total de tokens por interacción",    "generate_doc": "📋 Generar Documentación",
     "chat": "💬 Chat con su informe",
+    "github_button_text": "Ver en GitHub",
+    "github_aria_label": "Ver repositorio en GitHub",
     "download_word": "📄 Descargar Word",
     "download_excel": "📊 Descargar Excel",
     "show_json": "Mostrar JSONs",

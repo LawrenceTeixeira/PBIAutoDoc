@@ -41,10 +41,79 @@ def configure_app():
         initial_sidebar_state="expanded",
     )
     
-    # Language selector at the top
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Language selector and GitHub button at the top
+    col1, col2, col3, col4 = st.columns([1, 1.5, 1, 0.7])
     with col3:
         language_selector("main_language_selector", use_flags=True, flag_style="image")
+    with col4:
+        # CSS para fazer o botão GitHub parecer com os botões do Streamlit
+        st.markdown("""
+        <style>
+        /* Estilo para o botão GitHub simular botões do Streamlit */
+        .github-button {
+            display: inline-block;
+            width: 65%;
+            padding: 0.375rem 0.5rem;
+            margin: 0;
+            font-weight: 400;
+            color: #262730;
+            background-color: #FFFFFF;
+            border: 1px solid #D4D4D8;
+            border-radius: 0.375rem;
+            text-decoration: none !important;
+            text-align: center;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            min-height: 38.4px;
+            box-sizing: border-box;
+        }
+        .github-button:hover {
+            border-color: #FF4B4B;
+            color: #FF4B4B;
+            text-decoration: none !important;
+        }
+        .github-button:visited {
+            text-decoration: none !important;
+        }
+        .github-button:active {
+            text-decoration: none !important;
+        }
+        .github-button:focus {
+            text-decoration: none !important;
+            outline: none;
+        }
+        .github-button svg {
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        
+        /* Para tema escuro */
+        @media (prefers-color-scheme: dark) {
+            .github-button {
+                color: #FAFAFA;
+                background-color: #262730;
+                border-color: #4A4A4A;
+            }
+            .github-button:hover {
+                border-color: #FF4B4B;
+                color: #FF4B4B;
+                text-decoration: none !important;
+            }
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Botão GitHub com estilo similar aos botões das bandeiras
+        st.markdown(f"""
+        <a href="https://github.com/LawrenceTeixeira/PBIAutoDoc" target="_blank" class="github-button" aria-label="{t('ui.github_aria_label')}">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            {t('ui.github_button_text')}
+        </a>
+        """, unsafe_allow_html=True)
     
     st.header(t('ui.app_title'))
     st.write(t('ui.app_description'))
@@ -56,7 +125,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox(t('ui.model_selector'), ('gpt-4.1-mini', 'gpt-4.1', 'azure/gpt-4.1-mini', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        modelo = st.selectbox(t('ui.model_selector'), ('groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'gpt-4.1-mini', 'gpt-4.1', 'azure/gpt-4.1-mini', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio(t('ui.data_source_selector'), (t('ui.power_bi_template'), t('ui.power_bi_service')))
