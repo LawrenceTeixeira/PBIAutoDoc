@@ -17,7 +17,7 @@ AutoDoc é uma ferramenta que simplifica e automatiza a documentação de relat�
 
 ## Acesse o AutoDoc Online
 
-[AutoDoc - Documentador de Power BI](https://autodocpbi.fly.dev/)
+[AutoDoc - Documentador de Power BI](https://autodoc.lawrence.eti.br/)
 
 ---
 
