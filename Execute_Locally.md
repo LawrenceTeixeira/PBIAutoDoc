@@ -60,7 +60,7 @@ Now that you have your Groq API key and Docker Desktop installed, you can run th
     docker rm -f autodoc_v21
 
     docker run -d --name autodoc_v21 -p 8501:8501 \
-      -e GROQ_API_KEY=<YOUR GROQ KEY> \
+      -e "GROQ_API_KEY=<YOUR GROQ KEY>" \
       -e "STREAMLIT_WATCHER_IGNORE_MODULES=torch" \
       -e "AVAILABLE_MODELS=groq/meta-llama/llama-4-maverick-17b-128e-instruct,groq/openai/gpt-oss-120b" \
       lawrenceteixeira/autodoc_v21
