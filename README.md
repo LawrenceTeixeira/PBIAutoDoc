@@ -111,11 +111,13 @@ graph TD
     GEMINI_API_KEY=your_gemini_api_key
     ANTHROPIC_API_KEY=your_anthropic_api_key
     
-    # Modelos disponíveis para seleção (separados por vírgula)
+    STREAMLIT_WATCHER_IGNORE_MODULES="torch"
+    
     AVAILABLE_MODELS=groq/meta-llama/llama-4-maverick-17b-128e-instruct,groq/openai/gpt-oss-120b,gpt-5-mini,gpt-5,azure/gpt-4.1-mini,gemini/gemini-2.5-flash-preview-04-17,claude-3-7-sonnet-20250219,deepseek/deepseek-chat
-
-    # Modelo padrão (opcional)
     DEFAULT_MODEL=groq/meta-llama/llama-4-maverick-17b-128e-instruct
+    
+    # If you want to run models locally with Ollama: https://ollama.com/search
+    #OLLAMA_BASE_URL = "http://localhost:11434"
     ```
     Check other providers: [LiteLLM Providers](https://docs.litellm.ai/docs/providers)
 

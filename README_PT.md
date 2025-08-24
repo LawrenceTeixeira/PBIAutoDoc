@@ -115,7 +115,10 @@ graph TD
     AVAILABLE_MODELS=groq/meta-llama/llama-4-maverick-17b-128e-instruct,groq/openai/gpt-oss-120b,gpt-5-mini,gpt-5,azure/gpt-4.1-mini,gemini/gemini-2.5-flash-preview-04-17,claude-3-7-sonnet-20250219,deepseek/deepseek-chat
 
     # Modelo padrão (opcional)
-    DEFAULT_MODEL=groq/meta-llama/llama-4-maverick-17b-128e-instruct    
+    DEFAULT_MODEL=groq/meta-llama/llama-4-maverick-17b-128e-instruct   
+
+    # Para você rodar modelos localmente com Ollama: https://ollama.com/search
+    #OLLAMA_BASE_URL = "http://localhost:11434" 
     ```
     Consulte outros provedores: [LiteLLM Providers](https://docs.litellm.ai/docs/providers)
 
