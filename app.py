@@ -124,8 +124,23 @@ def sidebar_inputs():
         
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
-        # Opção de seleção entre Open AI e Groq para definir o modelo
-        modelo = st.selectbox(t('ui.model_selector'), ('groq/meta-llama/llama-4-maverick-17b-128e-instruct', 'groq/openai/gpt-oss-120b', 'gpt-5-mini', 'gpt-5', 'azure/gpt-4.1-mini', 'gemini/gemini-2.5-flash-preview-04-17', 'claude-3-7-sonnet-20250219', 'deepseek/deepseek-chat' ))
+        # Carrega os modelos das variáveis de ambiente
+        available_models_str = os.getenv('AVAILABLE_MODELS', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct,groq/openai/gpt-oss-120b,gpt-5-mini,gpt-5,azure/gpt-4.1-mini,gemini/gemini-2.5-flash-preview-04-17,claude-3-7-sonnet-20250219,deepseek/deepseek-chat')
+        available_models = tuple(model.strip() for model in available_models_str.split(','))
+        default_model = os.getenv('DEFAULT_MODEL', available_models[0])
+        
+        # Encontra o índice do modelo padrão para definir como selecionado
+        try:
+            default_index = available_models.index(default_model)
+        except ValueError:
+            default_index = 0
+        
+        # Opção de seleção de modelo usando variáveis de ambiente
+        modelo = st.selectbox(
+            t('ui.model_selector'), 
+            available_models,
+            index=default_index
+        )
                          
         # Opção de seleção entre Serviço e Arquivo
         option = st.radio(t('ui.data_source_selector'), (t('ui.power_bi_template'), t('ui.power_bi_service')))
