@@ -2,8 +2,8 @@ import msal
 import requests
 import pandas as pd
 import time
-from zipfile import ZipFile
-import json
+from zipfile import ZipFile, BadZipFile
+import io, json
 
 def get_token(APP_ID, TENANT_ID, SECRET_VALUE):
     """Obtém o token de autenticação da Microsoft para acessar a API do Power BI."""
@@ -138,111 +138,129 @@ def extract_relationships(json_data):
     
     return relationship_info
 
-def upload_file(uploaded_files):
+def upload_file(uploaded_file):
     """Processa o upload do arquivo .pbit ou .zip e extrai os dados relevantes."""
-
-    datasetid_content = None  # Initialize with a default value
-    reportid_content = None
-    reportname_content = None
-
-    if uploaded_files.name.endswith('.pbit') or uploaded_files.name.endswith('.zip'):
-        if uploaded_files.name.endswith('.pbit'):
-            uploaded_files.name = uploaded_files.name[:-5] + '.zip'
-            
-        with ZipFile(uploaded_files, 'r') as zipf:
-            zipf.extractall('temp')
-            file_list = zipf.namelist()
-            
-            for file_name in file_list:
-                with zipf.open(file_name) as extracted_file:
-                    if file_name == 'Connections':
-                        connections_content = extracted_file.read().decode("utf-8")
-                        connections_content = json.loads(connections_content)
-                        
-                        datasetid_content = connections_content['RemoteArtifacts'][0]['DatasetId']
-                        reportid_content = connections_content['RemoteArtifacts'][0]['ReportId']
-                        reportname_content = uploaded_files.name[:-4]
-                    
-                    if file_name == 'DataModelSchema':
-                        content = extracted_file.read().decode("utf-16-le")
-                        content = json.loads(content)
-                        
-        df_columns, df_tables = pd.DataFrame(), pd.DataFrame()
-        
-        measure_names, measure_expression, tables_names = [], [], []
-        
-        if 'model' in content and 'tables' in content['model']:
-            tables = content['model']['tables']            
-            for rows in tables:
-                if 'DateTable' not in rows['name']:
-                    if 'measures' in rows:
-                        for measures in rows['measures']:
-                            # Verificando se a medida está dentro de uma pasta
-                            folder_name = measures.get('displayFolder', None)
-                            if folder_name:
-                                full_measure_name = f"{folder_name} / {measures['name']}"
-                            else:
-                                full_measure_name = measures['name']
-                            
-                            tables_names.append(rows['name'])
-                            measure_names.append(full_measure_name)
-                            expression = measures.get('expression', 'N/A')
-                            measure_expression.append("".join(expression) if isinstance(expression, list) else expression)
-
-                    if 'columns' in rows:
-                        for cols in rows['columns']:
-                            col_data = pd.DataFrame([{
-                                'NomeTabela': rows['name'],
-                                'NomeColuna': cols['name'],
-                                'TipoDadoColuna': cols.get('dataType', 'N/A'),
-                                'TipoColuna': cols.get('type', 'N/A'),
-                                'ExpressaoColuna': cols.get('expression', 'N/A')
-                            }])
-
-                            df_columns = pd.concat([df_columns, col_data], ignore_index=True)
-
-                    # Safeguard against missing keys
-                    if 'partitions' in rows and len(rows['partitions']) > 0 and 'source' in rows['partitions'][0] and 'expression' in rows['partitions'][0]['source']:
-                        mcode = [''.join(rows['partitions'][0]['source']['expression'])]
-                    else:
-                        mcode = ['N/A']  # or use another default value if 'expression' is not found
-                    
-                    if datasetid_content is not None:
-                        df_tables_rows = pd.DataFrame([{
-                            'DatasetId': datasetid_content,
-                            'ReportId': reportid_content,
-                            'ReportName': reportname_content,
-                            'NomeTabela': rows['name'], 
-                            'FonteDados': mcode[0]
-                        }])
-                        #print(df_tables_rows)
-                    else:
-                        df_tables_rows = pd.DataFrame([{
-                            'DatasetId': '0',
-                            'ReportId': reportid_content,
-                            'ReportName': 'PBIReport',
-                            'NomeTabela': rows['name'], 
-                            'FonteDados': mcode[0]
-                        }])
-
-                    df_tables = pd.concat([df_tables, df_tables_rows], ignore_index=True)
-
-        df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(lambda l: "".join(l) if isinstance(l, list) else l)
-        
-        df_measures = pd.DataFrame({
-            'NomeTabela': tables_names,
-            'NomeMedida': measure_names,
-            'ExpressaoMedida': measure_expression
-        })
-
-        # Extract relationship information
-        relationship_info = extract_relationships(content)
-
-        # Create a DataFrame
-        df_relationships = pd.DataFrame(relationship_info)
-
-        df_normalized = pd.merge(pd.merge(df_tables, df_measures, left_on='NomeTabela', right_on='NomeTabela', how='left'), df_columns, right_on='NomeTabela', left_on='NomeTabela', how='left')
-        
-        return df_normalized, df_relationships
-    else:
+    # Aceita .pbit ou .zip
+    if not uploaded_file.name.endswith(('.pbit', '.zip')):
         return 'Arquivo não suportado'
+
+    datasetid_content = None
+    reportid_content = None
+    reportname_content = uploaded_file.name.rsplit('.', 1)[0]
+    content = {}  # <- IMPORTANT: inicializar para evitar UnboundLocalError
+
+    # Garantir um buffer "seekable"
+    buf = io.BytesIO(uploaded_file.read())
+
+    try:
+        with ZipFile(buf, 'r') as zipf:
+            members = set(zipf.namelist())
+
+            # alguns pacotes trazem subpastas; casamos pelo sufixo
+            def open_member(name):
+                for m in members:
+                    if m.endswith(name):
+                        return zipf.open(m)
+                return None
+
+            # Connections (UTF-8)
+            f = open_member('Connections')
+            if f is not None:
+                connections_content = json.loads(f.read().decode('utf-8'))
+                ra = (connections_content.get('RemoteArtifacts') or [{}])[0]
+                datasetid_content = ra.get('DatasetId')
+                reportid_content  = ra.get('ReportId')
+
+            # DataModelSchema (UTF-16 LE)
+            f = open_member('DataModelSchema')
+            if f is None:
+                return "Arquivo inválido: não contém 'DataModelSchema'."
+            raw = f.read()
+            try:
+                content = json.loads(raw.decode('utf-16-le'))
+            except Exception as e:
+                return f"Falha ao ler DataModelSchema (UTF-16-LE): {e}"
+
+    except BadZipFile:
+        return 'Arquivo inválido: não é um ZIP/PBIT válido.'
+    except Exception as e:
+        return f'Falha ao abrir o arquivo: {e}'
+
+    # --------- Extração dos dados ---------
+    df_columns = pd.DataFrame()
+    df_tables  = pd.DataFrame()
+    measure_names, measure_expression, tables_names = [], [], []
+
+    model = content.get('model', {})
+    for rows in model.get('tables', []):
+        # pular tabelas de data geradas automaticamente
+        if 'DateTable' in rows.get('name', ''):
+            continue
+
+        # Medidas
+        for m in rows.get('measures', []):
+            folder = m.get('displayFolder')
+            full_name = f"{folder} / {m.get('name')}" if folder else m.get('name')
+            expr = m.get('expression', 'N/A')
+            if isinstance(expr, list):
+                expr = ''.join(expr)
+            tables_names.append(rows.get('name'))
+            measure_names.append(full_name)
+            measure_expression.append(expr)
+
+        # Colunas
+        for c in rows.get('columns', []):
+            col_data = pd.DataFrame([{
+                'NomeTabela': rows.get('name'),
+                'NomeColuna': c.get('name'),
+                'TipoDadoColuna': c.get('dataType', 'N/A'),
+                'TipoColuna': c.get('type', 'N/A'),
+                'ExpressaoColuna': c.get('expression', 'N/A')
+            }])
+            df_columns = pd.concat([df_columns, col_data], ignore_index=True)
+
+        # Fonte (M code) da primeira partição, se existir
+        part = (rows.get('partitions') or [{}])[0]
+        src = part.get('source', {})
+        mcode = src.get('expression', 'N/A')
+        if isinstance(mcode, list):
+            mcode = ''.join(mcode)
+
+        df_tables_rows = pd.DataFrame([{
+            'DatasetId': datasetid_content or '0',
+            'ReportId':  reportid_content,
+            'ReportName': reportname_content or 'PBIReport',
+            'NomeTabela': rows.get('name'),
+            'FonteDados': mcode
+        }])
+        df_tables = pd.concat([df_tables, df_tables_rows], ignore_index=True)
+
+    # Normalizações finais
+    df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(
+        lambda v: ''.join(v) if isinstance(v, list) else v
+    )
+
+    df_measures = pd.DataFrame({
+        'NomeTabela': tables_names,
+        'NomeMedida': measure_names,
+        'ExpressaoMedida': measure_expression
+    })
+
+    # Relacionamentos (se existirem)
+    rels = []
+    for r in model.get('relationships', []):
+        rels.append({
+            'FromTable': r.get('fromTable'),
+            'FromColumn': r.get('fromColumn'),
+            'ToTable': r.get('toTable'),
+            'ToColumn': r.get('toColumn'),
+            'Cardinality': r.get('cardinality')
+        })
+    df_relationships = pd.DataFrame(rels)
+
+    df_normalized = pd.merge(
+        pd.merge(df_tables, df_measures, on='NomeTabela', how='left'),
+        df_columns, on='NomeTabela', how='left'
+    )
+
+    return df_normalized, df_relationships
