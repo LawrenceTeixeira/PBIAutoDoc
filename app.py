@@ -204,6 +204,8 @@ def detailed_description():
     {t('detailed_description.conclusion')}
     
     {t('detailed_description.created_info')}
+    
+    Versão: 2.0.0 
     """)
 
 def sidebar_description():
