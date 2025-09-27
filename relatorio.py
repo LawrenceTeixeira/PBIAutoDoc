@@ -140,9 +140,18 @@ def extract_relationships(json_data):
 
 def upload_file(uploaded_file):
     """Processa o upload do arquivo .pbit ou .zip e extrai os dados relevantes."""
+    # Verifica se o arquivo não é nulo ou vazio
+    if uploaded_file is None:
+        return 'Nenhum arquivo foi selecionado'
+    
     # Aceita .pbit ou .zip
     if not uploaded_file.name.endswith(('.pbit', '.zip')):
         return 'Arquivo não suportado'
+
+    # Lê o conteúdo do arquivo
+    file_content = uploaded_file.read()
+    if not file_content or len(file_content) == 0:
+        return 'O arquivo está vazio'
 
     datasetid_content = None
     reportid_content = None
@@ -150,7 +159,7 @@ def upload_file(uploaded_file):
     content = {}  # <- IMPORTANT: inicializar para evitar UnboundLocalError
 
     # Garantir um buffer "seekable"
-    buf = io.BytesIO(uploaded_file.read())
+    buf = io.BytesIO(file_content)
 
     try:
         with ZipFile(buf, 'r') as zipf:

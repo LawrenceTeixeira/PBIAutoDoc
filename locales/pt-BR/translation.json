@@ -157,6 +157,10 @@
     "network_error": "Erro de conexão. Verifique sua conexão com a internet.",
     "no_data_found": "Nenhum dado encontrado no arquivo selecionado.",
     "invalid_workspace": "Workspace inválida ou inacessível.",
-    "invalid_report": "Relatório inválido ou inacessível."
+    "invalid_report": "Relatório inválido ou inacessível.",
+    "invalid_powerbi_file": "O arquivo Power BI enviado está vazio, corrompido ou não contém dados válidos. Por favor, verifique o arquivo e tente novamente.",
+    "empty_file": "O arquivo enviado está vazio. Por favor, selecione um arquivo Power BI válido (.pbit ou .zip).",
+    "corrupted_file": "O arquivo Power BI parece estar corrompido ou não é um arquivo válido. Verifique o arquivo e tente novamente.",
+    "missing_datamodel": "O arquivo não contém um modelo de dados válido do Power BI. Certifique-se de que é um arquivo .pbit válido."
   }
 }

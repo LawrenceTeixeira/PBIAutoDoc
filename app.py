@@ -223,16 +223,50 @@ def main_content(headers=None, uploaded_files=None):
 
     if uploaded_files:
         with st.spinner(t('messages.processing_file')):
-            df_normalized, df_relationships = upload_file(uploaded_files)
+            try:
+                result = upload_file(uploaded_files)
+                
+                # Verificar se o resultado é uma string (erro) ou tupla (sucesso)
+                if isinstance(result, str):
+                    # É uma mensagem de erro
+                    error_message = result
+                    if "Arquivo inválido: não contém 'DataModelSchema'" in error_message or "não é um ZIP/PBIT válido" in error_message:
+                        st.error(t('errors.invalid_powerbi_file'))
+                    elif "Arquivo não suportado" in error_message:
+                        st.error(t('errors.file_not_supported'))
+                    elif "arquivo vazio" in error_message.lower():
+                        st.error(t('errors.empty_file'))
+                    elif "corrompido" in error_message.lower() or "falha" in error_message.lower():
+                        st.error(t('errors.corrupted_file'))
+                    else:
+                        st.error(t('errors.processing_error', error=error_message))
+                    return
+                
+                # Se chegou aqui, deve ser uma tupla com os dados
+                if isinstance(result, tuple) and len(result) == 2:
+                    df_normalized, df_relationships = result
+                else:
+                    st.error(t('errors.invalid_powerbi_file'))
+                    return
+                
+            except ValueError as e:
+                if "too many values to unpack" in str(e):
+                    st.error(t('errors.invalid_powerbi_file'))
+                else:
+                    st.error(t('errors.processing_error', error=str(e)))
+                return
+            except Exception as e:
+                st.error(t('errors.processing_error', error=str(e)))
+                return
 
         # Store the df_relationships data in the session state for later use
         st.session_state['df_relationships'] = df_relationships
 
-        if isinstance(df_normalized, pd.DataFrame):
+        if isinstance(df_normalized, pd.DataFrame) and not df_normalized.empty:
             st.success(t('messages.file_processed'))
             buttons_download(df_normalized)
         else:
-            st.error(t('errors.processing_error', error=df_normalized))
+            st.error(t('errors.no_data_found'))
 
     if headers:        
         with st.spinner(t('messages.loading_workspaces')):

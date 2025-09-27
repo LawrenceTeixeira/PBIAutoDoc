@@ -157,6 +157,10 @@
     "network_error": "Connection error. Please check your internet connection.",
     "no_data_found": "No data found in the selected file.",
     "invalid_workspace": "Invalid or inaccessible workspace.",
-    "invalid_report": "Invalid or inaccessible report."
+    "invalid_report": "Invalid or inaccessible report.",
+    "invalid_powerbi_file": "The uploaded Power BI file is empty, corrupted, or does not contain valid data. Please check the file and try again.",
+    "empty_file": "The uploaded file is empty. Please select a valid Power BI file (.pbit or .zip).",
+    "corrupted_file": "The Power BI file appears to be corrupted or is not a valid file. Please check the file and try again.",
+    "missing_datamodel": "The file does not contain a valid Power BI data model. Make sure it is a valid .pbit file."
   }
 }
