@@ -1,5 +1,4 @@
 streamlit
-litellm
 msal
 requests
 pandas
@@ -8,3 +7,4 @@ python-docx
 xlsxwriter
 streamlit-javascript
 tiktoken
+litellm==1.77.1
