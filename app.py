@@ -5,6 +5,7 @@ from io import BytesIO
 import pandas as pd
 import json
 import tiktoken
+from zipfile import ZipFile
 
 # Importando as funções dos outros arquivos
 from relatorio import get_token, get_workspaces_id, scan_workspace, clean_reports, upload_file
@@ -151,7 +152,7 @@ def sidebar_inputs():
             secret_value = None
             uploaded_files = st.file_uploader(
                 t('ui.file_upload_label'), 
-                accept_multiple_files=False, 
+                accept_multiple_files=True, 
                 type=['pbit', 'zip'], 
                 help=t('ui.file_upload_help')
             )
@@ -219,54 +220,127 @@ def sidebar_description():
                 
 def main_content(headers=None, uploaded_files=None):
     """Exibe as informações principais do aplicativo."""    
-    st.session_state['df_relationships'] = None
+    if 'all_reports_data' not in st.session_state:
+        st.session_state['all_reports_data'] = []
 
     if uploaded_files:
-        with st.spinner(t('messages.processing_file')):
-            try:
-                result = upload_file(uploaded_files)
-                
-                # Verificar se o resultado é uma string (erro) ou tupla (sucesso)
-                if isinstance(result, str):
-                    # É uma mensagem de erro
-                    error_message = result
-                    if "Arquivo inválido: não contém 'DataModelSchema'" in error_message or "não é um ZIP/PBIT válido" in error_message:
-                        st.error(t('errors.invalid_powerbi_file'))
-                    elif "Arquivo não suportado" in error_message:
-                        st.error(t('errors.file_not_supported'))
-                    elif "arquivo vazio" in error_message.lower():
-                        st.error(t('errors.empty_file'))
-                    elif "corrompido" in error_message.lower() or "falha" in error_message.lower():
-                        st.error(t('errors.corrupted_file'))
+        # Convert to list if needed
+        if not isinstance(uploaded_files, list):
+            uploaded_files = [uploaded_files]
+        
+        # Check if single file or batch processing
+        if len(uploaded_files) == 1:
+            # Single file processing - original behavior with all options
+            with st.spinner(t('messages.processing_file')):
+                try:
+                    result = upload_file(uploaded_files[0])
+                    
+                    # Verificar se o resultado é uma string (erro) ou tupla (sucesso)
+                    if isinstance(result, str):
+                        # É uma mensagem de erro
+                        error_message = result
+                        if "Arquivo inválido: não contém 'DataModelSchema'" in error_message or "não é um ZIP/PBIT válido" in error_message:
+                            st.error(t('errors.invalid_powerbi_file'))
+                        elif "Arquivo não suportado" in error_message:
+                            st.error(t('errors.file_not_supported'))
+                        elif "arquivo vazio" in error_message.lower():
+                            st.error(t('errors.empty_file'))
+                        elif "corrompido" in error_message.lower() or "falha" in error_message.lower():
+                            st.error(t('errors.corrupted_file'))
+                        else:
+                            st.error(t('errors.processing_error', error=error_message))
+                        return
+                    
+                    # Se chegou aqui, deve ser uma tupla com os dados
+                    if isinstance(result, tuple) and len(result) == 2:
+                        df_normalized, df_relationships = result
                     else:
-                        st.error(t('errors.processing_error', error=error_message))
+                        st.error(t('errors.invalid_powerbi_file'))
+                        return
+                    
+                except ValueError as e:
+                    if "too many values to unpack" in str(e):
+                        st.error(t('errors.invalid_powerbi_file'))
+                    else:
+                        st.error(t('errors.processing_error', error=str(e)))
                     return
-                
-                # Se chegou aqui, deve ser uma tupla com os dados
-                if isinstance(result, tuple) and len(result) == 2:
-                    df_normalized, df_relationships = result
-                else:
-                    st.error(t('errors.invalid_powerbi_file'))
-                    return
-                
-            except ValueError as e:
-                if "too many values to unpack" in str(e):
-                    st.error(t('errors.invalid_powerbi_file'))
-                else:
+                except Exception as e:
                     st.error(t('errors.processing_error', error=str(e)))
-                return
-            except Exception as e:
-                st.error(t('errors.processing_error', error=str(e)))
-                return
+                    return
 
-        # Store the df_relationships data in the session state for later use
-        st.session_state['df_relationships'] = df_relationships
+            # Store the df_relationships data in the session state for later use
+            st.session_state['df_relationships'] = df_relationships
 
-        if isinstance(df_normalized, pd.DataFrame) and not df_normalized.empty:
-            st.success(t('messages.file_processed'))
-            buttons_download(df_normalized)
+            if isinstance(df_normalized, pd.DataFrame) and not df_normalized.empty:
+                st.success(t('messages.file_processed'))
+                buttons_download(df_normalized)
+            else:
+                st.error(t('errors.no_data_found'))
         else:
-            st.error(t('errors.no_data_found'))
+            # Multiple files - batch processing without extra options
+            st.session_state['all_reports_data'] = []
+            errors = []
+            
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for idx, uploaded_file in enumerate(uploaded_files):
+                status_text.text(f"{t('messages.processing_file')} {idx + 1}/{len(uploaded_files)}: {uploaded_file.name}")
+                progress_bar.progress((idx) / len(uploaded_files))
+                
+                try:
+                    result = upload_file(uploaded_file)
+                    
+                    # Verificar se o resultado é uma string (erro) ou tupla (sucesso)
+                    if isinstance(result, str):
+                        error_message = result
+                        if "Arquivo inválido: não contém 'DataModelSchema'" in error_message or "não é um ZIP/PBIT válido" in error_message:
+                            errors.append(f"{uploaded_file.name}: {t('errors.invalid_powerbi_file')}")
+                        elif "Arquivo não suportado" in error_message:
+                            errors.append(f"{uploaded_file.name}: {t('errors.file_not_supported')}")
+                        elif "arquivo vazio" in error_message.lower():
+                            errors.append(f"{uploaded_file.name}: {t('errors.empty_file')}")
+                        elif "corrompido" in error_message.lower() or "falha" in error_message.lower():
+                            errors.append(f"{uploaded_file.name}: {t('errors.corrupted_file')}")
+                        else:
+                            errors.append(f"{uploaded_file.name}: {t('errors.processing_error', error=error_message)}")
+                        continue
+                    
+                    # Se chegou aqui, deve ser uma tupla com os dados
+                    if isinstance(result, tuple) and len(result) == 2:
+                        df_normalized, df_relationships = result
+                        if isinstance(df_normalized, pd.DataFrame) and not df_normalized.empty:
+                            st.session_state['all_reports_data'].append({
+                                'df': df_normalized,
+                                'df_relationships': df_relationships,
+                                'filename': uploaded_file.name.rsplit('.', 1)[0]
+                            })
+                        else:
+                            errors.append(f"{uploaded_file.name}: {t('errors.no_data_found')}")
+                    else:
+                        errors.append(f"{uploaded_file.name}: {t('errors.invalid_powerbi_file')}")
+                    
+                except ValueError as e:
+                    if "too many values to unpack" in str(e):
+                        errors.append(f"{uploaded_file.name}: {t('errors.invalid_powerbi_file')}")
+                    else:
+                        errors.append(f"{uploaded_file.name}: {t('errors.processing_error', error=str(e))}")
+                except Exception as e:
+                    errors.append(f"{uploaded_file.name}: {t('errors.processing_error', error=str(e))}")
+            
+            progress_bar.progress(1.0)
+            status_text.empty()
+            progress_bar.empty()
+            
+            # Show results
+            if st.session_state['all_reports_data']:
+                st.success(f"{t('messages.files_processed_successfully', count=len(st.session_state['all_reports_data']))}")
+                buttons_download_batch(st.session_state['all_reports_data'])
+            
+            if errors:
+                st.error(f"{t('messages.processing_errors')}")
+                for error in errors:
+                    st.warning(error)
 
     if headers:        
         with st.spinner(t('messages.loading_workspaces')):
@@ -495,14 +569,14 @@ def buttons_download(df):
 
         st.button(t('chat.close_chat'), on_click=lambda: st.session_state.update({'show_chat': False, 'doc_gerada': True}))    # Exibe as opções somente se a documentação foi gerada e o chat não está ativo
     if st.session_state.get('doc_gerada', False) and not st.session_state.get('show_chat', False):
-        verprompt = st.checkbox(t('ui.show_json'), key='mostrar_json', disabled=st.session_state.button )
-        if verprompt:
-            response_info_str = json.dumps(st.session_state.get('response_info', {}), indent=2)
-            response_tables_str = json.dumps(st.session_state.get('response_tables', {}), indent=2)
-            response_measures_str = json.dumps(st.session_state.get('response_measures', {}), indent=2)
-            response_source_str = json.dumps(st.session_state.get('response_source', {}), indent=2)
-            text = f"{t('ui.json_report_info')}\n{response_info_str}\n\n{t('ui.json_report_tables')}\n{response_tables_str}\n\n{t('ui.json_report_measures')}\n{response_measures_str}\n\n{t('ui.json_data_sources')}\n{response_source_str}"
-            st.text_area(t('ui.json_area_label'), value=text, height=300)
+        #verprompt = st.checkbox(t('ui.show_json'), key='mostrar_json', disabled=st.session_state.button )
+        #if verprompt:
+        #    response_info_str = json.dumps(st.session_state.get('response_info', {}), indent=2)
+        #    response_tables_str = json.dumps(st.session_state.get('response_tables', {}), indent=2)
+        #    response_measures_str = json.dumps(st.session_state.get('response_measures', {}), indent=2)
+        #    response_source_str = json.dumps(st.session_state.get('response_source', {}), indent=2)
+        #    text = f"{t('ui.json_report_info')}\n{response_info_str}\n\n{t('ui.json_report_tables')}\n{response_tables_str}\n\n{t('ui.json_report_measures')}\n{response_measures_str}\n\n{t('ui.json_data_sources')}\n{response_source_str}"
+        #    st.text_area(t('ui.json_area_label'), value=text, height=300)
 
         col1, col2 = st.columns(2)
         with col1:
@@ -528,6 +602,263 @@ def buttons_download(df):
                         file_name=report_name+'.docx',
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
+
+def buttons_download_batch(all_reports_data):
+    """Exibe botões para processamento e download em lote de múltiplos relatórios."""
+    if 'batch_button' not in st.session_state:
+        st.session_state.batch_button = True
+    if 'batch_doc_gerada' not in st.session_state:
+        st.session_state['batch_doc_gerada'] = False
+    if 'batch_results' not in st.session_state:
+        st.session_state['batch_results'] = []
+
+    st.subheader(f"{t('ui.batch_processing_title', count=len(all_reports_data))}")
+    
+    # Show preview of files to process
+    with st.expander(t('ui.view_files_to_process')):
+        for idx, report_data in enumerate(all_reports_data):
+            st.write(f"{idx + 1}. {report_data['filename']}")
+    
+    # Options before generating documentation
+    on = st.checkbox(t('ui.view_report_data'))
+    if on:
+        for idx, report_data in enumerate(all_reports_data):
+            st.write(f"**{report_data['filename']}**")
+            st.dataframe(report_data['df'])
+    
+    verprompt_completo = st.checkbox(t('ui.show_prompt'))
+    if verprompt_completo:
+        for report_data in all_reports_data:
+            st.write(f"**{report_data['filename']}**")
+            document_text_all, _, _, _, _, _ = text_to_document(report_data['df'], max_tokens=MAX_TOKENS)
+            prompt = generate_promt(document_text_all, t('language_name'))
+            st.text_area(f"Prompt - {report_data['filename']}:", value=prompt, height=300, key=f"prompt_{report_data['filename']}")
+    
+    mostra_total_tokens = st.checkbox(t('ui.show_tokens'))
+    if mostra_total_tokens:
+        for report_data in all_reports_data:
+            st.write(f"**{report_data['filename']}**")
+            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, _, _, _ = text_to_document(report_data['df'], max_tokens=MAX_TOKENS)
+            total_tokens = 0
+            stringmostra = ""
+            conta_interacao = 0
+            if counttokens(document_text_all) < MAX_TOKENS:
+                conta_interacao += 1
+                total_tokens += counttokens(document_text_all)
+                stringmostra += f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}\n"
+            else:
+                for text in dados_relatorio_PBI_medidas:
+                    conta_interacao += 1
+                    total_tokens += counttokens(text)
+                    stringmostra += f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}\n"
+                for text in dados_relatorio_PBI_fontes:
+                    conta_interacao += 1
+                    total_tokens += counttokens(text)
+                    stringmostra += f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}\n"
+            stringmostra += f"\n{t('ui.total_interactions')} {conta_interacao}\n{t('ui.total_tokens')} {total_tokens:,} tokens.\n"
+            st.text_area(f"{t('ui.token_analysis_label')} - {report_data['filename']}", value=stringmostra, height=200, key=f"tokens_{report_data['filename']}")
+    
+    gerar_batch = st.button(t('ui.generate_batch_docs'), disabled=st.session_state.get('batch_doc_gerada', False))
+    
+    if gerar_batch:
+        st.session_state['batch_results'] = []
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        for idx, report_data in enumerate(all_reports_data):
+            df = report_data['df']
+            df_relationships = report_data['df_relationships']
+            filename = report_data['filename']
+            
+            status_text.text(f"{t('messages.processing_report')} {idx + 1}/{len(all_reports_data)}: {filename}")
+            progress_bar.progress(idx / len(all_reports_data))
+            
+            try:
+                conta_interacao = 1
+                document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+                medidas_do_relatorio_df = pd.DataFrame()
+                fontes_de_dados_df = pd.DataFrame()
+                Uma = True
+                response_info = {}
+                response_tables = []
+                
+                if counttokens(document_text_all) < MAX_TOKENS:
+                    response = Documenta(defined_prompt(t('language_name')), document_text_all, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                    conta_interacao += 1
+                    if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                        Uma = False
+                        response_info = response['Relatorio']
+                        response_tables = response['Tabelas_do_Relatorio']
+                    response_measures = response['Medidas_do_Relatorio']
+                    response_source = response['Fontes_de_Dados']
+                else:
+                    for text in dados_relatorio_PBI_medidas:
+                        response = Documenta(defined_prompt_medidas(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        conta_interacao += 1
+                        if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                            Uma = False
+                            response_info = response['Relatorio']
+                            response_tables = response['Tabelas_do_Relatorio']
+                        if 'Medidas_do_Relatorio' in response:
+                            medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+                    for text in dados_relatorio_PBI_fontes:
+                        response = Documenta(defined_prompt_fontes(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
+                        conta_interacao += 1
+                        if Uma and 'Relatorio' in response and 'Tabelas_do_Relatorio' in response:
+                            Uma = False
+                            response_info = response['Relatorio']
+                            response_tables = response['Tabelas_do_Relatorio']
+                        if 'Fontes_de_Dados' in response:
+                            fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+                    response_measures = medidas_do_relatorio_df.to_dict(orient='records')
+                    response_source = fontes_de_dados_df.to_dict(orient='records')
+                
+                update_fonte_dados(response_source, tables_df)
+                
+                st.session_state['batch_results'].append({
+                    'filename': filename,
+                    'response_info': response_info,
+                    'response_tables': response_tables,
+                    'response_measures': response_measures,
+                    'response_source': response_source,
+                    'measures_df': measures_df,
+                    'df_relationships': df_relationships,
+                    'df_colunas': df_colunas
+                })
+            except Exception as e:
+                st.error(f"{t('errors.processing_error', error=str(e))} - {filename}")
+        
+        progress_bar.progress(1.0)
+        status_text.empty()
+        progress_bar.empty()
+        
+        st.session_state['batch_doc_gerada'] = True
+        st.session_state.batch_button = False
+        st.success(t('messages.batch_documentation_generated', count=len(st.session_state['batch_results'])))
+    
+    # Display download options after generation
+    if st.session_state.get('batch_doc_gerada', False):
+        # Show JSON option
+        #verprompt = st.checkbox(t('ui.show_json'), key='mostrar_json_batch', disabled=st.session_state.batch_button)
+        #if verprompt:
+        #    for result in st.session_state['batch_results']:
+        #        st.write(f"**{result['filename']}**")
+        #        response_info_str = json.dumps(result['response_info'], indent=2)
+        #        response_tables_str = json.dumps(result['response_tables'], indent=2)
+        #        response_measures_str = json.dumps(result['response_measures'], indent=2)
+        #        response_source_str = json.dumps(result['response_source'], indent=2)
+        #        text = f"{t('ui.json_report_info')}\n{response_info_str}\n\n{t('ui.json_report_tables')}\n{response_tables_str}\n\n{t('ui.json_report_measures')}\n{response_measures_str}\n\n{t('ui.json_data_sources')}\n{response_source_str}"
+        #        st.text_area(f"{t('ui.json_area_label')} - {result['filename']}", value=text, height=300, key=f"json_{result['filename']}")
+        
+        st.subheader(t('ui.download_batch_title'))
+        
+        # Download all files as ZIP
+        col_zip1, col_zip2 = st.columns(2)
+        with col_zip1:
+            if st.button(t('ui.download_all_excel_zip'), disabled=st.session_state.batch_button, key='download_all_excel_zip'):
+                with st.spinner(t('ui.generating_files')):
+                    zip_buffer = BytesIO()
+                    with ZipFile(zip_buffer, 'w') as zip_file:
+                        for result in st.session_state['batch_results']:
+                            excel_buffer = generate_excel(
+                                result['response_info'],
+                                result['response_tables'],
+                                result['response_measures'],
+                                result['response_source'],
+                                result['measures_df'],
+                                result['df_relationships'],
+                                result['df_colunas']
+                            )
+                            zip_file.writestr(f"{result['filename']}.xlsx", excel_buffer.getvalue())
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label=t('ui.download_zip_excel'),
+                        data=zip_buffer,
+                        file_name="PowerBI_Reports_Excel.zip",
+                        mime="application/zip",
+                        key="download_excel_zip_btn"
+                    )
+        
+        with col_zip2:
+            if st.button(t('ui.download_all_word_zip'), disabled=st.session_state.batch_button, key='download_all_word_zip'):
+                with st.spinner(t('ui.generating_files')):
+                    zip_buffer = BytesIO()
+                    with ZipFile(zip_buffer, 'w') as zip_file:
+                        for result in st.session_state['batch_results']:
+                            doc = generate_docx(
+                                result['response_info'],
+                                result['response_tables'],
+                                result['response_measures'],
+                                result['response_source'],
+                                result['measures_df'],
+                                result['df_relationships'],
+                                result['df_colunas'],
+                                MODELO,
+                                st.session_state.language
+                            )
+                            doc_buffer = BytesIO()
+                            doc.save(doc_buffer)
+                            doc_buffer.seek(0)
+                            zip_file.writestr(f"{result['filename']}.docx", doc_buffer.getvalue())
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label=t('ui.download_zip_word'),
+                        data=zip_buffer,
+                        file_name="PowerBI_Reports_Word.zip",
+                        mime="application/zip",
+                        key="download_word_zip_btn"
+                    )
+        
+        st.markdown("---")
+        st.write(t('ui.individual_downloads'))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button(t('ui.export_all_excel'), disabled=st.session_state.batch_button):
+                with st.spinner(t('ui.generating_files')):
+                    for result in st.session_state['batch_results']:
+                        buffer = generate_excel(
+                            result['response_info'],
+                            result['response_tables'],
+                            result['response_measures'],
+                            result['response_source'],
+                            result['measures_df'],
+                            result['df_relationships'],
+                            result['df_colunas']
+                        )
+                        st.download_button(
+                            label=f"📥 {result['filename']}.xlsx",
+                            data=buffer,
+                            file_name=f"{result['filename']}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key=f"excel_{result['filename']}"
+                        )
+        
+        with col2:
+            if st.button(t('ui.export_all_word'), disabled=st.session_state.batch_button):
+                with st.spinner(t('ui.generating_files')):
+                    for result in st.session_state['batch_results']:
+                        doc = generate_docx(
+                            result['response_info'],
+                            result['response_tables'],
+                            result['response_measures'],
+                            result['response_source'],
+                            result['measures_df'],
+                            result['df_relationships'],
+                            result['df_colunas'],
+                            MODELO,
+                            st.session_state.language
+                        )
+                        buffer = BytesIO()
+                        doc.save(buffer)
+                        buffer.seek(0)
+                        st.download_button(
+                            label=f"📥 {result['filename']}.docx",
+                            data=buffer,
+                            file_name=f"{result['filename']}.docx",
+                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            key=f"word_{result['filename']}"
+                        )
 
         
 def main():    

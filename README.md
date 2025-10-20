@@ -9,6 +9,7 @@ AutoDoc is a tool that simplifies and automates the documentation of Power BI re
 ## Features
 
 - **Power BI Model Upload**: Support for `.pbit` and `.zip` files.
+- **Batch Processing**: Upload and process multiple Power BI reports simultaneously, generating individual Excel and Word files for each report.
 - **Detailed Documentation**: Automatic generation in Excel and Word, including tables, columns, measures, and data sources.
 - **Interactive Visualization**: View data before downloading.
 - **Automation and Precision**: Fast, reliable, and standardized process.
@@ -72,9 +73,10 @@ graph TD
 ## How to Use
 
 1. Fill in App ID, Tenant ID, and Secret Value in the sidebar.
-2. Upload the `.pbit` or `.zip` file.
+2. Upload one or multiple `.pbit` or `.zip` files for batch processing.
 3. View the data and download the documentation in Excel or Word.
-4. **Access Chat**: After processing the report, click the "💬 Chat" button to open the chat. Ask questions about tables, measures, columns, or relationships in your Power BI model. The assistant will respond based on the loaded data.
+4. **Batch Processing**: When multiple files are uploaded, AutoDoc will process all reports and generate individual documentation files for each one.
+5. **Access Chat**: After processing the report, click the "💬 Chat" button to open the chat. Ask questions about tables, measures, columns, or relationships in your Power BI model. The assistant will respond based on the loaded data.
 
 ---
 
