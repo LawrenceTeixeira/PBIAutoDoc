@@ -24,12 +24,18 @@ MODELO = ""
 MAX_TOKENS = 0
 MAX_TOKENS_SAIDA = 0
 
+# Cache the tokenizer encoding to avoid repeated initialization
+_TIKTOKEN_ENCODING = None
+
 def counttokens(text):
-    # Inicializando o tokenizador para o modelo desejado (neste exemplo, GPT-4)
-    encoding = tiktoken.get_encoding("cl100k_base")
+    """Count tokens in text using cached tiktoken encoding."""
+    global _TIKTOKEN_ENCODING
+    # Initialize encoding once and reuse
+    if _TIKTOKEN_ENCODING is None:
+        _TIKTOKEN_ENCODING = tiktoken.get_encoding("cl100k_base")
     
     # Contar o número de tokens no texto fornecido
-    tokens = len(encoding.encode(text))
+    tokens = len(_TIKTOKEN_ENCODING.encode(text))
     
     return tokens
 
@@ -425,22 +431,24 @@ def buttons_download(df):
     if mostra_total_tokens:
         document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
         total_tokens = 0
-        stringmostra = ""
+        stringmostra_lines = []
         conta_interacao= 0
         if counttokens(document_text_all) < MAX_TOKENS:
             conta_interacao += 1
             total_tokens += counttokens(document_text_all)
-            stringmostra += f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}\n"
+            stringmostra_lines.append(f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}")
         else:
             for text in dados_relatorio_PBI_medidas:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
-                stringmostra += f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}\n"
+                stringmostra_lines.append(f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}")
             for text in dados_relatorio_PBI_fontes:
                 conta_interacao += 1
                 total_tokens += counttokens(text)
-                stringmostra += f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}\n"
-        stringmostra += f"\n{t('ui.total_interactions')} {conta_interacao}\n{t('ui.total_tokens')} {total_tokens:,} tokens.\n"
+                stringmostra_lines.append(f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}")
+        stringmostra_lines.append(f"\n{t('ui.total_interactions')} {conta_interacao}")
+        stringmostra_lines.append(f"{t('ui.total_tokens')} {total_tokens:,} tokens.")
+        stringmostra = '\n'.join(stringmostra_lines)
         st.text_area(t('ui.token_analysis_label'), value=stringmostra, height=300)
 
     colA, colB = st.columns(2)
@@ -469,6 +477,8 @@ def buttons_download(df):
                 response_measures = response['Medidas_do_Relatorio']
                 response_source = response['Fontes_de_Dados']
             else:
+                # Collect DataFrames in lists first for efficient concatenation
+                medidas_list = []
                 for text in dados_relatorio_PBI_medidas:
                     gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
@@ -479,7 +489,13 @@ def buttons_download(df):
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
                         if 'Medidas_do_Relatorio'  in response:
-                            medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+                            medidas_list.append(pd.DataFrame(response["Medidas_do_Relatorio"]))
+                
+                # Concatenate all at once for better performance
+                if medidas_list:
+                    medidas_do_relatorio_df = pd.concat(medidas_list, ignore_index=True)
+                
+                fontes_list = []
                 for text in dados_relatorio_PBI_fontes:
                     gerando = f"{conta_interacao}{t('ui.interaction_progress')}"
                     with st.spinner(gerando):
@@ -491,7 +507,12 @@ def buttons_download(df):
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
                         if 'Fontes_de_Dados' in response:
-                            fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+                            fontes_list.append(pd.DataFrame(response["Fontes_de_Dados"]))
+                
+                # Concatenate all at once for better performance
+                if fontes_list:
+                    fontes_de_dados_df = pd.concat(fontes_list, ignore_index=True)
+                
                 response_measures = medidas_do_relatorio_df.to_dict(orient='records')
                 response_source = fontes_de_dados_df.to_dict(orient='records')
             
@@ -640,22 +661,24 @@ def buttons_download_batch(all_reports_data):
             st.write(f"**{report_data['filename']}**")
             document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, _, _, _ = text_to_document(report_data['df'], max_tokens=MAX_TOKENS)
             total_tokens = 0
-            stringmostra = ""
+            stringmostra_lines = []
             conta_interacao = 0
             if counttokens(document_text_all) < MAX_TOKENS:
                 conta_interacao += 1
                 total_tokens += counttokens(document_text_all)
-                stringmostra += f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}\n"
+                stringmostra_lines.append(f"{t('ui.first_interaction')}      | {t('ui.tokens_count')} {counttokens(document_text_all):,}")
             else:
                 for text in dados_relatorio_PBI_medidas:
                     conta_interacao += 1
                     total_tokens += counttokens(text)
-                    stringmostra += f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}\n"
+                    stringmostra_lines.append(f"{conta_interacao}{t('ui.measures_interaction')}      | {t('ui.tokens_count')} {counttokens(text):,}")
                 for text in dados_relatorio_PBI_fontes:
                     conta_interacao += 1
                     total_tokens += counttokens(text)
-                    stringmostra += f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}\n"
-            stringmostra += f"\n{t('ui.total_interactions')} {conta_interacao}\n{t('ui.total_tokens')} {total_tokens:,} tokens.\n"
+                    stringmostra_lines.append(f"{conta_interacao}{t('ui.sources_interaction')} | {t('ui.tokens_count')} {counttokens(text):,}")
+            stringmostra_lines.append(f"\n{t('ui.total_interactions')} {conta_interacao}")
+            stringmostra_lines.append(f"{t('ui.total_tokens')} {total_tokens:,} tokens.")
+            stringmostra = '\n'.join(stringmostra_lines)
             st.text_area(f"{t('ui.token_analysis_label')} - {report_data['filename']}", value=stringmostra, height=200, key=f"tokens_{report_data['filename']}")
     
     gerar_batch = st.button(t('ui.generate_batch_docs'), disabled=st.session_state.get('batch_doc_gerada', False))
@@ -692,6 +715,8 @@ def buttons_download_batch(all_reports_data):
                     response_measures = response['Medidas_do_Relatorio']
                     response_source = response['Fontes_de_Dados']
                 else:
+                    # Collect DataFrames in lists first for efficient concatenation
+                    medidas_list = []
                     for text in dados_relatorio_PBI_medidas:
                         response = Documenta(defined_prompt_medidas(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
@@ -700,7 +725,13 @@ def buttons_download_batch(all_reports_data):
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
                         if 'Medidas_do_Relatorio' in response:
-                            medidas_do_relatorio_df = pd.concat([medidas_do_relatorio_df, pd.DataFrame(response["Medidas_do_Relatorio"])], ignore_index=True)
+                            medidas_list.append(pd.DataFrame(response["Medidas_do_Relatorio"]))
+                    
+                    # Concatenate all at once for better performance
+                    if medidas_list:
+                        medidas_do_relatorio_df = pd.concat(medidas_list, ignore_index=True)
+                    
+                    fontes_list = []
                     for text in dados_relatorio_PBI_fontes:
                         response = Documenta(defined_prompt_fontes(t('language_name')), text, MODELO, max_tokens=MAX_TOKENS, max_tokens_saida=MAX_TOKENS_SAIDA)
                         conta_interacao += 1
@@ -709,7 +740,12 @@ def buttons_download_batch(all_reports_data):
                             response_info = response['Relatorio']
                             response_tables = response['Tabelas_do_Relatorio']
                         if 'Fontes_de_Dados' in response:
-                            fontes_de_dados_df = pd.concat([fontes_de_dados_df, pd.DataFrame(response["Fontes_de_Dados"])], ignore_index=True)
+                            fontes_list.append(pd.DataFrame(response["Fontes_de_Dados"]))
+                    
+                    # Concatenate all at once for better performance
+                    if fontes_list:
+                        fontes_de_dados_df = pd.concat(fontes_list, ignore_index=True)
+                    
                     response_measures = medidas_do_relatorio_df.to_dict(orient='records')
                     response_source = fontes_de_dados_df.to_dict(orient='records')
                 
