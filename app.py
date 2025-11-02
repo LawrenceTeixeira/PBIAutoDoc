@@ -39,6 +39,21 @@ def counttokens(text):
     
     return tokens
 
+def get_cached_text_document(df, max_tokens):
+    """
+    Cached version of text_to_document to avoid redundant processing.
+    Uses session state to cache results per DataFrame ID.
+    """
+    # Create a cache key based on DataFrame properties
+    cache_key = f"text_doc_{id(df)}_{max_tokens}"
+    
+    # Check if result is already cached in session state
+    if cache_key not in st.session_state:
+        # Process and cache the result
+        st.session_state[cache_key] = text_to_document(df, max_tokens=max_tokens)
+    
+    return st.session_state[cache_key]
+
 def configure_app():
     """Configura a aparência e o layout do aplicativo Streamlit."""    
     st.set_page_config(
@@ -423,13 +438,13 @@ def buttons_download(df):
 
     verprompt_completo = st.checkbox(t('ui.show_prompt'))
     if verprompt_completo:
-        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = get_cached_text_document(df, max_tokens=MAX_TOKENS)
         prompt = generate_promt(document_text_all, t('language_name'))
         st.text_area("Prompt:", value=prompt, height=300)
 
     mostra_total_tokens = st.checkbox(t('ui.show_tokens'))
     if mostra_total_tokens:
-        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+        document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = get_cached_text_document(df, max_tokens=MAX_TOKENS)
         total_tokens = 0
         stringmostra_lines = []
         conta_interacao= 0
@@ -461,7 +476,7 @@ def buttons_download(df):
         conta_interacao = 1
         gerando = t('messages.generating_documentation')
         with st.spinner(gerando):
-            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = text_to_document(df, max_tokens=MAX_TOKENS)
+            document_text_all, dados_relatorio_PBI_medidas, dados_relatorio_PBI_fontes, measures_df, tables_df, df_colunas = get_cached_text_document(df, max_tokens=MAX_TOKENS)
             medidas_do_relatorio_df = pd.DataFrame()
             fontes_de_dados_df = pd.DataFrame()
             Uma = True
@@ -537,7 +552,7 @@ def buttons_download(df):
     if st.session_state.show_chat:
         # --- Chat interface ---
         # Prepare chat prompt from the report
-        document_text_all, _, _, _, _, _ = text_to_document(df, max_tokens=MAX_TOKENS)        # Adiciona colunas ao contexto
+        document_text_all, _, _, _, _, _ = get_cached_text_document(df, max_tokens=MAX_TOKENS)        # Adiciona colunas ao contexto
         df_colunas = st.session_state.get('df_colunas')
         if df_colunas is not None and not df_colunas.empty:
             colunas_texto = '\n'.join([
