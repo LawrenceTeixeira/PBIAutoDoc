@@ -286,14 +286,14 @@ def client_chat_LiteLLM(modelo, messages, maxtokens=4096):
         print(f"Erro ao chamar a API do modelo: {modelo}, corrigindo automaticamente executando o modelo gpt-4.1-nano da Open AI. {str(e)}. Tentativa:", count)
 
         response = completion(
-            model='groq/meta-llama/llama-4-maverick-17b-128e-instruct',
+            model='groq/meta-llama/llama-4-scout-17b-16e-instruct',
             temperature=0,
             max_tokens=maxtokens,
             messages=messages
         )
         response_content = json.loads( response.choices[0].message.content )
         count += 1
-        print(f"Modelo groq/meta-llama/llama-4-maverick-17b-128e-instruct da Meta executado com sucesso.")
+        print(f"Modelo groq/meta-llama/llama-4-scout-17b-16e-instruct da Meta executado com sucesso.")
         if count > 10:
             print(f"Erro ao chamar a API {str(e)}")
             raise Exception(f"Erro ao chamar a API {str(e)}")

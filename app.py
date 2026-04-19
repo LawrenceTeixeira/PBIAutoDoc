@@ -126,7 +126,7 @@ def sidebar_inputs():
         st.image("https://lawrence.eti.br/wp-content/uploads/2025/04/AutoDoc.png")
         
         # Carrega os modelos das variáveis de ambiente
-        available_models_str = os.getenv('AVAILABLE_MODELS', 'groq/meta-llama/llama-4-maverick-17b-128e-instruct,groq/openai/gpt-oss-120b,gpt-5-mini,gpt-5,azure/gpt-4.1-mini,gemini/gemini-2.5-flash-preview-04-17,claude-3-7-sonnet-20250219,deepseek/deepseek-chat')
+        available_models_str = os.getenv('AVAILABLE_MODELS', 'groq/meta-llama/llama-4-scout-17b-16e-instruct,groq/openai/gpt-oss-120b,gpt-5-mini,gpt-5,azure/gpt-4.1-mini,gemini/gemini-2.5-flash-preview-04-17,claude-3-7-sonnet-20250219,deepseek/deepseek-chat')
         available_models = tuple(model.strip() for model in available_models_str.split(','))
         default_model = os.getenv('DEFAULT_MODEL', available_models[0])
         
