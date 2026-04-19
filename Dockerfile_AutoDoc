@@ -9,8 +9,6 @@ COPY requirements.txt /app/
 # install the dependencies and packages in the requirements file
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir chunkipy
-
 COPY . /app
 
 EXPOSE 8501

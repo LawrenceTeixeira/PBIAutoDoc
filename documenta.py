@@ -8,7 +8,7 @@ from docx.shared import Pt, Inches, RGBColor
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from datetime import date, datetime
-from chunkipy import TextChunker
+import tiktoken
 from i18n import translate_to_language
 
 # Funções de definição dos Prompts para a medida e fontes dos dados
@@ -255,6 +255,26 @@ Abaixo estão dados do relatório do Power BI a ser documentado:"""
 # Define a tag para fazer a quebra do texto
 def split_by_tag(text):
     return [t for t in text.split("<tag>") if t != '' and ' ']
+
+def chunk_text_by_tag(text, max_tokens):
+    """Splits text by <tag> and groups segments into chunks within max_tokens."""
+    encoding = tiktoken.get_encoding("cl100k_base")
+    segments = split_by_tag(text)
+    chunks = []
+    current_chunk = ""
+    current_tokens = 0
+    for segment in segments:
+        seg_tokens = len(encoding.encode(segment))
+        if current_chunk and current_tokens + seg_tokens > max_tokens:
+            chunks.append(current_chunk)
+            current_chunk = segment
+            current_tokens = seg_tokens
+        else:
+            current_chunk += segment
+            current_tokens += seg_tokens
+    if current_chunk:
+        chunks.append(current_chunk)
+    return chunks
 
 def client_chat_LiteLLM(modelo, messages, maxtokens=4096):    
     """Interage com qualquer modelo unsando LiteLLM para obter respostas.
@@ -739,15 +759,13 @@ def text_to_document(df, df_relationships=None, max_tokens=4096):
     #monta um texto com o nome da medida e a expressao da medida    
     measures_df['NomeMedidaExpressao'] = '<tag> Nome da medida: ' + measures_df['NomeMedida'] + ' Expressão da medida: ' + measures_df['ExpressaoMedida']
 
-    text_chunker_medidas = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
-    chunks_medidas = text_chunker_medidas.chunk(measures_df['NomeMedidaExpressao'].to_string(index=False))
+    chunks_medidas = chunk_text_by_tag(measures_df['NomeMedidaExpressao'].to_string(index=False), max_tokens)
 
     # Prepara para enviar as fontes dos dados do relatório em partes por causa da limitação de tokens do modelo
     #monta um texto com o nome da tabela e fontededados
     tables_df['NomeTabelaFonteDados'] = '<tag> NomeTabela: ' + tables_df['NomeTabela'] + ' Fonte de Dados: ' + tables_df['FonteDados']
 
-    text_chunker_fontes = TextChunker(chunk_size=max_tokens, tokens=True, overlap_percent=0, split_strategies=[split_by_tag])
-    chunks_fontes = text_chunker_fontes.chunk(tables_df['NomeTabelaFonteDados'].to_string(index=False))
+    chunks_fontes = chunk_text_by_tag(tables_df['NomeTabelaFonteDados'].to_string(index=False), max_tokens)
 
     # define uma lista para armazenar todos os textos para o modelo LLM
     document_texts_medidas = []
