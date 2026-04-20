@@ -196,8 +196,8 @@ def upload_file(uploaded_file):
         return f'Falha ao abrir o arquivo: {e}'
 
     # --------- Extração dos dados ---------
-    df_columns = pd.DataFrame()
-    df_tables  = pd.DataFrame()
+    columns_list = []
+    tables_list = []
     measure_names, measure_expression, tables_names = [], [], []
 
     model = content.get('model', {})
@@ -217,16 +217,15 @@ def upload_file(uploaded_file):
             measure_names.append(full_name)
             measure_expression.append(expr)
 
-        # Colunas
+        # Colunas - collect in list instead of concatenating in loop
         for c in rows.get('columns', []):
-            col_data = pd.DataFrame([{
+            columns_list.append({
                 'NomeTabela': rows.get('name'),
                 'NomeColuna': c.get('name'),
                 'TipoDadoColuna': c.get('dataType', 'N/A'),
                 'TipoColuna': c.get('type', 'N/A'),
                 'ExpressaoColuna': c.get('expression', 'N/A')
-            }])
-            df_columns = pd.concat([df_columns, col_data], ignore_index=True)
+            })
 
         # Fonte (M code) da primeira partição, se existir
         part = (rows.get('partitions') or [{}])[0]
@@ -235,19 +234,23 @@ def upload_file(uploaded_file):
         if isinstance(mcode, list):
             mcode = ''.join(mcode)
 
-        df_tables_rows = pd.DataFrame([{
+        tables_list.append({
             'DatasetId': datasetid_content or '0',
             'ReportId':  reportid_content,
             'ReportName': reportname_content or 'PBIReport',
             'NomeTabela': rows.get('name'),
             'FonteDados': mcode
-        }])
-        df_tables = pd.concat([df_tables, df_tables_rows], ignore_index=True)
+        })
+
+    # Create DataFrames once from collected data
+    df_columns = pd.DataFrame(columns_list)
+    df_tables = pd.DataFrame(tables_list)
 
     # Normalizações finais
-    df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(
-        lambda v: ''.join(v) if isinstance(v, list) else v
-    )
+    if not df_columns.empty:
+        df_columns['ExpressaoColuna'] = df_columns['ExpressaoColuna'].apply(
+            lambda v: ''.join(v) if isinstance(v, list) else v
+        )
 
     df_measures = pd.DataFrame({
         'NomeTabela': tables_names,
